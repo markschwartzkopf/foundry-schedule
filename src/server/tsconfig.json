@@ -1,0 +1,12 @@
+{
+	"extends": "../../node_modules/@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"noEmitOnError": true,
+		"tsBuildInfoFile": ".tsbuildinfo",
+		"strictNullChecks": true,
+		"incremental": true,
+		"outDir": "../../dist",
+		"rootDir": ".."
+	},
+	"exclude": ["../browser/**/*"]
+}

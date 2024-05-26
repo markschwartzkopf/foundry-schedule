@@ -1,0 +1,23 @@
+Data for an JSON value:
+The first byte is the type of data:
+01:Boolean
+02:Int
+03:LongInt
+04:Float
+05:String
+06:Array
+07:Object
+08:Empty
+
+Case 01, Boolean: One data byte, 00 or 01, false or true, respectively
+Case 02, Int: 2 data bytes, Int16BE
+Case 03, LongInt: 4 data bytes, Int32BE
+Case 04, Float: 4 data bytes, FloatBE
+Case 05, String: First 2 bytes: Length, UInt16BE, [Length] bytes: string
+Case 06, Array: data is similar to normal JSON values, except only one byte for type. All elements are the same type and only the first one is preceded by a type byte
+Case 07, Object: Goes straight into key/data pairs. All object keys are assigned numbers. The numbers are sent as UInt16BE. Immediately Following the key number is the data for that key. For empty objects, the first two bytes, that would be the first key number are the reserved key number zero, followed by a tree traversal byte, value 1
+Case 08, Empty: Not an actual data type. The array that data is expected for is empty. The next byte will be the tree traversal byte with a non-zero value
+
+Tree traversal suffix byte: After data, the next byte indicates if it is another piece of data in the same array/object as the previous, or if that completes the currect array/object, and to traverse back up the tree by one level. UInt8
+
+The entire data structure is terminated by the final byte traversing to level 0

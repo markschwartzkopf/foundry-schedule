@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>Browser Lightboard</title>
+		<link rel="icon" href="favicon.ico" type="image/x-icon" />
+		<style>
+			:root {
+				--header-height: 3rem;
+			}
+			html,
+			body {
+				font-family: Arial, Helvetica, sans-serif;
+				margin: 0;
+				padding: 0;
+				height: 100%;
+				width: 100%;
+			}
+			body {
+				display: flex;
+				flex-direction: column;
+			}
+			#header {
+				background-color: #777;
+				color: #fff;
+				width: 100%;
+				height: var(--header-height);
+			}
+			#view-panels {
+				flex-grow: 4;
+				display: flex;
+				flex-direction: row;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+			}
+			#control-panel {
+				flex-grow: 4;
+				background-color: #000;
+				color: #fff;
+				height: 100%;
+				display: flex;
+			}
+			#control-panel > * {
+				flex-grow: 1;
+			}
+			#view-select-panel {
+				flex-grow: 1;
+				background-color: #333;
+				color: #fff;
+				height: 100%;
+			}
+			#footer {
+				flex-grow: 1;
+				background-color: #555;
+				color: #fff;
+				width: 100%;
+				height: 2em;
+			}
+			#stopsign {
+				height: calc(var(--header-height) * 0.8);
+				margin: calc(var(--header-height) * 0.1);
+				fill: #f44;
+				stroke: black;
+				cursor: pointer;
+			}
+			#stopsign.disabled {
+				cursor: default;
+				fill: #544;
+				stroke: #333;
+			}
+			#dmx-fixtures-button {
+				aspect-ratio: 4 / 1;
+				position: relative;
+				height: calc(var(--header-height) * 0.8);
+				margin: calc(var(--header-height) * 0.1);
+				box-shadow: 0 0 0.5em black;
+				float: right;
+				display: flex;
+				justify-content: center;
+			}
+			#dmx-fixtures-button svg {
+				position: absolute;
+				height: 100%;
+			}
+			#dmx-fixtures-button span {
+				cursor: pointer;
+				position: relative;
+				z-index: 1;
+				color: black;
+				line-height: calc(var(--header-height) * 0.8);
+				font-size: calc(var(--header-height) * 0.8);
+				font-weight: bold;
+				text-shadow: 0 0 0.1em rgba(255, 255, 255, 1);
+			}
+			#dmx-modal {
+				z-index: 2;
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-color: #000;
+				display: flex;
+			}
+			#dmx-modal.hidden {
+				display: none;
+			}
+			#dmx-grid {
+				flex-grow: 4;
+				flex-shrink: 1;
+				background-color: #333;
+				color: #fff;
+				height: 100%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				position: relative;
+			}
+			#dmx-flex {
+				display: flex;
+				flex-wrap: wrap;
+				margin: 5%;
+			}
+			#dmx-fixtures {
+				flex-grow: 1;
+				flex-shrink: 0;
+				min-width: 20%;
+				background-color: #555;
+				color: #fff;
+				height: 100%;
+			}
+			.dmx-address {
+				border: 1px solid #fff;
+				margin: -0.5px;
+				text-align: center;
+				line-height: var(--dmx-unit-length);
+			}
+			.button {
+				cursor: pointer;
+				background-color: #444;
+				color: #fff;
+				border: 1px solid #fff;
+				border-radius: 0.5em;
+				padding: 0.5em;
+				margin: 0.5em;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="dmx-modal" class="hidden">
+			<div id="dmx-grid">
+				<div id="dmx-flex"></div>
+			</div>
+			<div id="dmx-fixtures">
+				<div class="button">New Fixture</div>
+			</div>
+		</div>
+		<div id="header">
+			<svg
+				id="stopsign"
+				class="disabled"
+				xmlns="http://www.w3.org/2000/svg"
+				viewBox="-3 -3 106 106"
+			>
+				<polygon
+					points="69.60,3 97,30.4 97,70.60 69.60,97 30.4,97 3,70.60 3,30.4 30.4,3"
+					stroke-width="12"
+					stroke-linejoin="round"
+				/>
+			</svg>
+			<div id="dmx-fixtures-button">
+				<svg
+					class="disabled"
+					xmlns="http://www.w3.org/2000/svg"
+					viewBox="0 0 400 100"
+					stroke="black"
+					stroke-width="4"
+				>
+					<filter id="dim">
+						<feComponentTransfer>
+							<feFuncR type="linear" slope="1" intercept=".25" />
+							<feFuncG type="linear" slope="1" intercept=".25" />
+							<feFuncB type="linear" slope="1" intercept=".25" />
+						</feComponentTransfer>
+					</filter>
+					<g filter="url(#dim)">
+						<rect
+							x="0.25%"
+							y="0.25%"
+							width="99.5%"
+							height="99.5%"
+							fill="white"
+							stroke="none"
+						/>
+
+						<rect width="18.75%" height="25%" fill="gray" stroke="none" />
+						<rect
+							x="43.75%"
+							width="18.75%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+						<rect
+							x="87.5%"
+							width="12.5%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+						<rect
+							y="25%"
+							width="6.25%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+						<rect
+							x="25%"
+							y="75%"
+							width="6.25%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+						<rect
+							x="50%"
+							y="75%"
+							width="18.75%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+						<rect
+							x="75%"
+							y="75%"
+							width="18.75%"
+							height="25%"
+							fill="gray"
+							stroke="none"
+						/>
+
+						<line x1="0%" y1="0%" x2="100%" y2="0%" />
+						<line x1="0%" y1="25%" x2="100%" y2="25%" />
+						<line x1="0%" y1="50%" x2="100%" y2="50%" />
+						<line x1="0%" y1="75%" x2="100%" y2="75%" />
+						<line x1="0%" y1="100%" x2="100%" y2="100%" />
+
+						<line x1="2" y1="0%" x2="2" y2="100%" />
+						<line x1="6.25%" y1="0%" x2="6.25%" y2="100%" />
+						<line x1="12.5%" y1="0%" x2="12.5%" y2="100%" />
+						<line x1="18.75%" y1="0%" x2="18.75%" y2="100%" />
+						<line x1="25%" y1="0%" x2="25%" y2="100%" />
+						<line x1="31.25%" y1="0%" x2="31.25%" y2="100%" />
+						<line x1="37.5%" y1="0%" x2="37.5%" y2="100%" />
+						<line x1="43.75%" y1="0%" x2="43.75%" y2="100%" />
+						<line x1="50%" y1="0%" x2="50%" y2="100%" />
+						<line x1="56.25%" y1="0%" x2="56.25%" y2="100%" />
+						<line x1="62.5%" y1="0%" x2="62.5%" y2="100%" />
+						<line x1="68.75%" y1="0%" x2="68.75%" y2="100%" />
+						<line x1="75%" y1="0%" x2="75%" y2="100%" />
+						<line x1="81.25%" y1="0%" x2="81.25%" y2="100%" />
+						<line x1="87.5%" y1="0%" x2="87.5%" y2="100%" />
+						<line x1="93.75%" y1="0%" x2="93.75%" y2="100%" />
+						<line x1="398" y1="0%" x2="398" y2="100%" />
+					</g>
+				</svg>
+				<span>Fixtures</span>
+			</div>
+		</div>
+		<div id="view-panels">
+			<div id="control-panel">
+				<div id="control objects">Objects</div>
+				<div id="control parameters">Params</div>
+			</div>
+			<div id="view-select-panel">Control View Select</div>
+		</div>
+		<div id="footer">Footer</div>
+	</body>
+	<script type="module" src="index.js"></script>
+</html>
