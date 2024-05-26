@@ -3,21 +3,38 @@ export type errorData =
 	| (number | string | boolean | errorData)[];
 export type serverMessage = {
 	keys?: string[];
-	objects?: { [k: string]: ControlObjectData };
+	employees?: Employee[];
+	positions?: string[];
+	weeks?: Week[];
+	defaultWeek?: DefaultWeek;
 };
-export type ControlObjectData = {
-	animateable?: ObjectProps;
-	unanimateable?: ObjectProps;
-	constantProps?: ObjectProps;
-};
-
-
-export type ObjectProps = {
-	hue?: number;
-	saturation?: number;
-	value?: number;
+export type Employee = {
 	name: string;
-	dmxAddress?: number;
-	dmxChannels?: number;
+	positions: string[];
+	conditions: Condition[];
 };
+export type Condition = {};
+export type Week = [Day, Day, Day, Day, Day, Day, Day];
+export type Day = {
+	date: Date;
+	shifts: Shift[];
+}
+export type Shift = {
+	position: string;
+	employee: string;
+	start: Date;
+	end: Date;
+};
+export type DefaultWeek = [DefaultDay, DefaultDay, DefaultDay, DefaultDay, DefaultDay, DefaultDay, DefaultDay];
+export type DefaultDay = {
+	shifts: Shift[];
+}
 
+/* 
+needed files:
+employees
+default week
+positions
+weeks
+
+*/

@@ -11,11 +11,12 @@
 		"ecmaVersion": "latest",
 		"sourceType": "module",
 		"project": ["server/tsconfig.json", "browser/tsconfig.json"]
-		
 	},
 	"ignorePatterns": ["/index.js", "/src/global-types.d.ts", "/dist/**/*"],
-	"plugins": ["@typescript-eslint"],
+	"plugins": ["@typescript-eslint", "promise"],
 	"rules": {
-		"prefer-rest-params": 0
+		"prefer-rest-params": 0,
+		"promise/catch-or-return": "error",
+		"@typescript-eslint/no-explicit-any": 0
 	}
 }

@@ -2,8 +2,9 @@ import http from 'http';
 import fs from 'fs/promises';
 import path from 'path';
 import { WebSocket } from 'ws';
-import { getKeys, toBinary } from './binary-translate';
 import { blLog, errorData } from './logger';
+import { serverMessage } from '../global-types';
+import { getDefaultWeek, getEmployees, getPositions, getWeeks } from './data';
 
 const mimeTypes = {
 	'.html': 'text/html',
@@ -59,52 +60,37 @@ const httpServer = http
 		console.log(`Http server started on port ${PORT}`);
 
 		const connections: WebSocket[] = [];
-		
-		console.log('starting ws server');
-		const wss = new WebSocket.Server({ server: httpServer }, () => {
-			console.log(`WebSocket server started on port ${PORT}`);
-		});
 
-		const jsonTest = 'testString  ';
-
-		// to test: objects, empty objects, naked boolean/number/string?
+		console.log('Starting ws server attached to http server');
+		const wss = new WebSocket.Server({ server: httpServer });
 
 		wss.on('connection', (ws) => {
-			/* const send = (msg: ServerMsg) => {
-				ws.send(JSON.stringify(msg));
-			}; */
+			const msg: serverMessage = {
+				employees: getEmployees(),
+				positions: getPositions(),
+				defaultWeek: getDefaultWeek(),
+				weeks: getWeeks(),
+			};
+			ws.send(JSON.stringify(msg));
+
+			console.log('WebSocket connection opened');
 
 			connections.push(ws);
 			ws.on('error', console.error);
 
 			ws.on('message', (data) => {
 				const msg = data.toString();
-				if (msg === 'getKeys') {
-					ws.send(JSON.stringify(getKeys()));
-				} else {
-					try {
-						const obj = JSON.parse(msg);
-						if (typeof obj === 'object' && obj.error) {
-							const err = obj.error as string;
-							const data = obj.data as errorData | undefined;
-							blLog.browserError(err, data);
-						} else console.log('received: ' + data.toString());
-					} catch (err) {
-						console.log('received: ' + data.toString());
-					}
+				try {
+					const obj = JSON.parse(msg);
+					if (typeof obj === 'object' && obj.error) {
+						const err = obj.error as string;
+						const data = obj.data as errorData | undefined;
+						blLog.browserError(err, data);
+					} else console.log('received: ' + data.toString());
+				} catch (err) {
+					console.log('received: ' + data.toString());
 				}
 			});
-
-			ws.send(JSON.stringify(jsonTest));
-			const buf = toBinary(jsonTest);
-			if (buf) ws.send(buf);
-
-			//ws.send(JSON.stringify(getKeys()));
-
-			/* const socketKeysub = (keyMsg: KeysMsg) => { //This is a constant so it can be unsubscribed
-				ws.send(JSON.stringify(keyMsg));
-			};
-			keyChange.on('change', socketKeysub); */
 
 			ws.on('close', () => {
 				//keyChange.off('change', socketKeysub);
