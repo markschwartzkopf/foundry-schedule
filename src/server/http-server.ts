@@ -22,7 +22,7 @@ const mimeTypes = {
 };
 
 const STATIC_PATH=path.join(__dirname, '../../dist/browser/')
-const PORT=9099
+const PORT=process.env.PORT || 9099
 
 http
 .createServer((req, res) => {
