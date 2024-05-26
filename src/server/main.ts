@@ -1,2 +1,1 @@
-require('./ws-server');
-require('./http-server');
+require('./http-ws-server');

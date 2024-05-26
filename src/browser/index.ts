@@ -7,12 +7,12 @@ type BinaryProtocolType = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 let keys: string[] = [];
 
-const WS_PORT = 9098;
-const server_address =
-	new URL('http://' + window.location.host).hostname + ':' + WS_PORT;
+//const WS_PORT = 9098;
+const server_address = location.origin.replace(/^http/, 'ws');
+//new URL('ws://' + window.location.host).hostname + ':'// + WS_PORT;
 
 const textDecoder = new TextDecoder();
-const ws = new WebSocket('ws://' + server_address);
+const ws = new WebSocket(server_address);
 ws.binaryType = 'arraybuffer';
 
 ws.onopen = () => {
