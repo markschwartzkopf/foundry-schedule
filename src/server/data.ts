@@ -22,7 +22,8 @@ let weeks: Week[];
 	const today = new Date();
 	today.setHours(0, 0, 0, 0);
 	const day = today.getDay();
-	const diff = today.getDate() - day + (day == 0 ? -6 : 1) + 7; // adjust when day is Sunday
+	//change day to a Monday; if today is Sunday, subtract 6 days, otherwise add 1 day
+	const diff = today.getDate() - day + (day == 0 ? -6 : 1) + 7;
 	const firstDayOfNextWeek = new Date(today.setDate(diff));
 	weeks = [newWeek(firstDayOfNextWeek)];
 }
