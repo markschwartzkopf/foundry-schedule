@@ -17,6 +17,7 @@
 	"rules": {
 		"prefer-rest-params": 0,
 		"promise/catch-or-return": "error",
-		"@typescript-eslint/no-explicit-any": 0
+		"@typescript-eslint/no-explicit-any": 0,
+		"no-mixed-spaces-and-tabs": 0
 	}
 }
