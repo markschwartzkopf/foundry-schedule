@@ -99,7 +99,7 @@ uploadBackup.onclick = () => {
 						weeks: Week[];
 						defaultWeek: DefaultWeek;
 						positions: string[];
-					} = JSON.parse(data, dateReviver);					
+					} = JSON.parse(data, dateReviver);
 					const msg: clientMessage = {
 						type: 'uploadBackup',
 						...parsedData,
@@ -773,7 +773,9 @@ function populateWeeks() {
 			dayAsDay.date.setUTCHours(0, 0, 0, 0);
 		}
 		dayDiv.innerHTML = dayAsDay.date
-			? `${dayName} ${dayAsDay.date.getUTCMonth()}/${dayAsDay.date.getUTCDate()}/${dayAsDay.date
+			? `${dayName} ${
+					dayAsDay.date.getUTCMonth() + 1
+			  }/${dayAsDay.date.getUTCDate()}/${dayAsDay.date
 					.getUTCFullYear()
 					.toString()
 					.substring(2)}`
