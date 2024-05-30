@@ -41,6 +41,7 @@ viewElements.week[0].onclick = () => {
 	if (weekIndex > 0) {
 		weekIndex--;
 		populateWeeks();
+		populateEmployees();
 	}
 };
 viewElements.week[1].onclick = () => {
@@ -52,6 +53,7 @@ viewElements.week[2].onclick = () => {
 	if (weekIndex < weeks.length - 1) {
 		weekIndex++;
 		populateWeeks();
+		populateEmployees();
 	} else {
 		if (confirm('Create new week?')) {
 			const msg: clientMessage = { type: 'newWeek' };
