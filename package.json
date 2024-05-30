@@ -15,6 +15,7 @@
 		"build:copyhtml": "cpy \"src/browser/**/*.html\" \"dist/browser/\" --parents",
 		"build:copycss": "cpy \"src/browser/**/*.css\" \"dist/browser/\" --parents",
 		"build:copyico": "cpy \"src/browser/**/*.ico\" \"dist/browser/\" --parents",
+		"build:copysvg": "cpy \"src/browser/**/*.svg\" \"dist/browser/\" --parents",
 		"heroku:push": "git push heroku HEAD:main",
 		"heroku:go": "heroku open"
 	},

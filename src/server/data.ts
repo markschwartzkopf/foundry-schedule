@@ -4,8 +4,8 @@ import { blLog } from './logger';
 
 //starter data that will be overwritten from stored data if it exists
 let employees: Employee[] = [
-	{ name: 'Employee 1', positions: ['Register'], conditions: [] },
-	{ name: 'Employee 2', positions: ['Register'], conditions: [] },
+	{ name: 'Employee 1', positions: ['Register'], conditions: [], timeOff: [], unavailable: []},
+	{ name: 'Employee 2', positions: ['Register'], conditions: [], timeOff: [], unavailable: []},
 ];
 let defaultWeek: DefaultWeek = [
 	newDefaultDay(),
@@ -144,29 +144,28 @@ export function getWeeks() {
 	return weeks;
 }
 
-export function setEmployees(newEmployees: Employee[]) {
-	employees = newEmployees;
+export function setEmployees(newEmployees?: Employee[]) {
+	if (newEmployees) employees = newEmployees;
 	fs.promises.writeFile('./data/employees.json', JSON.stringify(employees));
 }
 
-export function setDefaultWeek(newDefaultWeek: DefaultWeek) {
-	defaultWeek = newDefaultWeek;
+export function setDefaultWeek(newDefaultWeek?: DefaultWeek) {
+	if (newDefaultWeek) defaultWeek = newDefaultWeek;
 	fs.promises.writeFile(
 		'./data/default-week.json',
 		JSON.stringify(defaultWeek)
 	);
 }
 
-export function setPositions(newPositions: string[]) {
-	positions = newPositions;
+export function setPositions(newPositions?: string[]) {
+	if (newPositions)	positions = newPositions;
 	fs.promises.writeFile('./data/positions.json', JSON.stringify(positions));
 }
 
-export function setWeeks(newWeeks: Week[]) {
-	weeks = newWeeks;
+export function setWeeks(newWeeks?: Week[]) {
+	if (newWeeks) weeks = newWeeks;
 	fs.promises.writeFile('./data/weeks.json', JSON.stringify(weeks));
 }
-
 
 //helper functions
 function dateReviver(key: string, value: any) {

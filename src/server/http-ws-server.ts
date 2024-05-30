@@ -3,8 +3,16 @@ import fs from 'fs/promises';
 import path from 'path';
 import { WebSocket } from 'ws';
 import { blLog, errorData } from './logger';
-import { serverMessage } from '../global-types';
-import { getDefaultWeek, getEmployees, getPositions, getWeeks } from './data';
+import { Week, clientMessage, serverMessage } from '../global-types';
+import {
+	getDefaultWeek,
+	getEmployees,
+	getPositions,
+	getWeeks,
+	setDefaultWeek,
+	setEmployees,
+	setWeeks,
+} from './data';
 
 const mimeTypes = {
 	'.html': 'text/html',
@@ -73,20 +81,113 @@ const httpServer = http
 			};
 			ws.send(JSON.stringify(msg));
 
-			console.log('WebSocket connection opened');
-
 			connections.push(ws);
+			console.log(
+				`WebSocket connection opened. Total connections: ${connections.length}`
+			);
+
 			ws.on('error', console.error);
 
 			ws.on('message', (data) => {
-				const msg = data.toString();
 				try {
-					const obj = JSON.parse(msg);
+					const obj = JSON.parse(data.toString(), dateReviver);
 					if (typeof obj === 'object' && obj.error) {
 						const err = obj.error as string;
 						const data = obj.data as errorData | undefined;
 						blLog.browserError(err, data);
-					} else console.log('received: ' + data.toString());
+					} else {
+						const msg = obj as clientMessage;
+						switch (msg.type) {
+							case 'changeShift':
+								{
+									const week =
+										msg.weekIndex >= 0
+											? getWeeks()[msg.weekIndex]
+											: getDefaultWeek();
+									if (!week) {
+										blLog.error('Shift adjustment failed: week not found');
+										return;
+									}
+									week[msg.dayIndex].shifts[msg.shiftIndex] = msg.shift;
+									setWeeks();
+									setDefaultWeek();
+									const sMsg: serverMessage =
+										msg.weekIndex >= 0
+											? { weeks: getWeeks() }
+											: { defaultWeek: getDefaultWeek() };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							case 'deleteShift':
+								{
+									const week =
+										msg.weekIndex >= 0
+											? getWeeks()[msg.weekIndex]
+											: getDefaultWeek();
+									if (!week) {
+										blLog.error('Shift deletion failed: week not found');
+										return;
+									}
+									week[msg.dayIndex].shifts.splice(msg.shiftIndex, 1);
+									setWeeks();
+									setDefaultWeek();
+									const sMsg: serverMessage =
+										msg.weekIndex >= 0
+											? { weeks: getWeeks() }
+											: { defaultWeek: getDefaultWeek() };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							case 'newWeek':
+								{
+									const weeks = getWeeks();
+									const firstDay = weeks[weeks.length - 1][6].date;
+									const newWeek = getDefaultWeek().map((day, index) => {
+										const date = new Date(firstDay);
+										date.setUTCDate(date.getDate() + index + 1);
+										return { date, shifts: deepCopy(day.shifts) };
+									}) as Week;
+									weeks.push(newWeek);
+									setWeeks();
+									const sMsg: serverMessage = { weeks };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							case 'changeEmployee':
+								{
+									const employees = getEmployees();
+									employees[msg.employeeIndex] = msg.employee;
+									setEmployees();
+									const sMsg: serverMessage = { employees };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							case 'deleteEmployee':
+								{
+									const employees = getEmployees();
+									employees.splice(msg.employeeIndex, 1);
+									setEmployees();
+									const sMsg: serverMessage = { employees };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							default:
+								// @ts-ignore
+								console.log('Unknown message type: ' + msg.type);
+								console.log('received: ' + data.toString());
+								break;
+						}
+					}
 				} catch (err) {
 					console.log('received: ' + data.toString());
 				}
@@ -94,6 +195,7 @@ const httpServer = http
 
 			ws.on('close', () => {
 				//keyChange.off('change', socketKeysub);
+				console.log('WebSocket connection closed');
 				const index = connections.indexOf(ws);
 				if (index === -1) {
 					blLog.error(`Closed WebSocket missing from WebSocket array`);
@@ -103,3 +205,25 @@ const httpServer = http
 			});
 		});
 	});
+
+function dateReviver(key: string, value: any) {
+	const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
+	if (typeof value === 'string' && dateFormat.test(value)) {
+		return new Date(value);
+	}
+	return value;
+}
+
+function deepCopy<T>(obj: T): T {
+	if (obj instanceof Date) {
+		return new Date(obj.getTime()) as T;
+	}
+	if (typeof obj === 'object' && obj !== null) {
+		const copy: any = Array.isArray(obj) ? [] : {};
+		Object.entries(obj).forEach(([key, value]) => {
+			copy[key] = deepCopy(value);
+		});
+		return copy as T;
+	}
+	return obj;
+}

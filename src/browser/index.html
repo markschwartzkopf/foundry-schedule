@@ -67,14 +67,24 @@
 				display: flex;
 				align-items: center;
 			}
+			#footer > * {
+				font-weight: bold;
+			}
 			#main {
 				flex-grow: 1;
 				position: relative;
 			}
-			#primary {
+			#main > * {
 				position: absolute;
 				width: 100%;
 				height: 100%;
+				background-color: var(--day-bgcolor);
+				color: var(--day-color);
+			}
+			#main > *.selected {
+				z-index: 1;
+			}
+			#primary {
 				display: flex;
 			}
 			#week-div {
@@ -106,7 +116,7 @@
 				color: var(--add-employee-color);
 			}
 			.day-of-week {
-				background-color: green;
+				background-color: #444;
 				color: white;
 				padding: 0.5em;
 				text-align: center;
@@ -120,7 +130,7 @@
 				cursor: pointer;
 				background-color: #444;
 				color: #fff;
-				border: 1px solid #fff;
+				border: 1px solid #999;
 				border-radius: 0.5em;
 				padding: 0.5em;
 				margin: 0.25em;
@@ -132,20 +142,13 @@
 			}
 			.shift.selected {
 				background-color: #777;
+				border: 2px solid #fff;
 			}
 			.shift-description {
 				font-size: 0.9em;
 			}
 			.shift-employee {
 				font-weight: bold;
-			}
-			.status {
-				font-weight: bold;
-				background-color: #444;
-				color: #fff;
-				border: 1px solid #fff;
-				border-radius: 0.5em;
-				padding: 0.5em;
 			}
 			.button {
 				cursor: pointer;
@@ -157,22 +160,207 @@
 				margin: 0.5em;
 				text-align: center;
 			}
+			.svg-button {
+				cursor: pointer;
+			}
+			.edit-form > * {
+				margin: 0.5em;
+			}
+			.add-shift-parent {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+			}
+			#employee-arrays {
+				display: flex;
+				width: 100%;
+			}
+			#employee-arrays > * {
+				color: #fff;
+				padding: 0.5em;
+				margin: 0.5em;
+				flex-grow: 1;
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 0.25em;
+			}
+			#employee-arrays > * > *:nth-child(2) {
+				width: 100%;
+				background-color: #444;
+				border: 1px solid #fff;
+				padding: 0.25em;
+			}
+			.employee-list-item {
+				color: #fff;
+				border: 1px solid #fff;
+				border-radius: 0.5em;
+				padding: 0.5em;
+				margin: 0.25em;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+			}
+			.day-notes {
+				line-height: 1.3;
+			}
+			.unrecommended {
+				filter: brightness(40%);
+			}
+			.add-to-list-stuff {
+				border: 1px solid #fff;
+				border-radius: 0.5em;
+				padding: 0.25em;
+				margin-top: 1em;
+			}
 		</style>
 	</head>
 	<body>
 		<div id="header">
 			<div id="view-week-dec" class="selected">&lt;</div>
 			<div id="view-week" class="selected">Week</div>
-			<div id="view-week-inc"class="selected">&gt;</div>
+			<div id="view-week-inc" class="selected">&gt;</div>
 			<span style="width: 2em"></span>
 			<div id="view-default-week">Default Week</div>
 			<span style="width: 2em"></span>
 			<div id="view-positions">Positions</div>
 		</div>
 		<div id="main">
-			<div id="primary">
+			<div id="primary" class="selected">
 				<div id="week-div"></div>
 				<div id="employees-div"></div>
+			</div>
+			<div
+				style="display: flex; justify-content: center; align-items: center"
+				id="shift-edit"
+			>
+				<div class="edit-form">
+					<label for="shift-position">Position:</label>
+					<input list="positions-list" id="shift-position" /><br />
+					<datalist id="positions-list"></datalist>
+					<label for="shift-start">Start:</label>
+					<input type="time" id="shift-start" /><br />
+					<label for="shift-end">End:</label>
+					<input type="time" id="shift-end" /><br />
+					<label for="shift-employee">Employee:</label>
+					<input list="employee-list" id="shift-employee" />
+					<datalist id="employee-list"></datalist>
+					<div>
+						<div class="button" id="save-shift">Save</div>
+					</div>
+				</div>
+			</div>
+			<div
+				style="display: flex; justify-content: center; align-items: center"
+				id="employee-edit"
+			>
+				<div
+					class="edit-form"
+					style="
+						min-width: 50%;
+						display: flex;
+						flex-direction: column;
+						align-items: center;
+					"
+				>
+					<label for="employee-name">Name:</label>
+					<input id="employee-name" />
+					<div id="employee-arrays">
+						<div id="employee-positions">
+							<b>Positions</b>
+							<div id="employee-positions-list">List</div>
+							<div class="add-to-list-stuff">
+								<label for="new-employee-position">Add position:</label>
+								<input list="positions-list" id="new-employee-position" />
+								<div
+									class="button"
+									id="add-employee-position"
+									style="display: none"
+								>
+									Add
+								</div>
+							</div>
+						</div>
+						<div id="employee-conditions">
+							<b>Conditions</b>
+							<div id="employee-conditions-list">List</div>
+							<div class="add-to-list-stuff">
+								<select id="employee-condition-relational">
+									<option value=">">More than</option>
+									<option value="=">Exactly</option>
+									<option value="&lt;">Less than</option>
+								</select>
+								<input type="number" id="employee-condition-value" min="0" max="100" />
+								<select id="employee-condition-value-type">
+									<option value="number">total</option>
+									<option value="percent">%</option>
+								</select>
+								<select id="employee-condition-position">
+									<option value="">Any</option>
+									<option value="">am</option>
+									<option value="">pm</option>
+								</select>
+								<span>shifts</span>
+								<div
+									class="button"
+									id="add-employee-condition"
+									style="display: none"
+								>
+									Add
+								</div>
+							</div>
+						</div>
+						<div id="employee-unavailable">
+							<b>Unavailable</b>
+							<div id="employee-unavailable-list">List</div>
+							<div style="line-height: 1.5" class="add-to-list-stuff">
+								<label for="unavailable-day">Day:</label>
+								<select id="unavailable-day">
+									<option value="1">Monday</option>
+									<option value="2">Tuesday</option>
+									<option value="3">Wednesday</option>
+									<option value="4">Thursday</option>
+									<option value="5">Friday</option>
+									<option value="6">Saturday</option>
+									<option value="0">Sunday</option>
+								</select>
+								<label for="all-day">All Day:</label>
+								<input type="checkbox" id="all-day" checked="true" /><br />
+								<div id="unavailable-start-end" style="display: none">
+									<label for="unavailable-start">Start:</label>
+									<input type="time" id="unavailable-start" />
+									<label for="unavailable-end">End:</label>
+									<input type="time" id="unavailable-end" />
+								</div>
+								<label for="unavailable-reason">Reason:</label>
+								<input id="unavailable-reason" />
+								<div class="button" id="add-unavailable">Add</div>
+							</div>
+						</div>
+						<div id="employee-time-off">
+							<b>Time Off</b>
+							<div id="employee-time-off-list">List</div>
+							<div style="line-height: 1.5" class="add-to-list-stuff">
+								<label for="time-off-start">Start Date:</label>
+								<input type="date" id="time-off-start" />
+								<label for="time-off-end">End Date:</label>
+								<input type="date" id="time-off-end" /><br />
+								<label for="time-off-start-time">Start Time:</label>
+								<input type="time" id="time-off-start-time" value="00:00" />
+								<label for="time-off-end-time">End Time:</label>
+								<input type="time" id="time-off-end-time" value="23:59" /><br />
+								<label for="time-off-reason">Reason:</label>
+								<input id="time-off-reason" />
+								<div class="button" id="add-time-off" style="display: none">
+									Add
+								</div>
+							</div>
+						</div>
+					</div>
+					<div>
+						<div class="button" id="save-employee">Save</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div id="footer"></div>
