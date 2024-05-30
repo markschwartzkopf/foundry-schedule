@@ -68,6 +68,51 @@ viewElements.defaultWeek[0].onclick = () => {
 let view: keyof typeof viewElements = 'week';
 
 const footerDiv = document.getElementById('footer') as HTMLDivElement;
+const downloadBackup = document.getElementById(
+	'download-backup'
+) as HTMLDivElement;
+downloadBackup.onclick = () => {
+	const data = JSON.stringify({ employees, weeks, defaultWeek, positions });
+	const blob = new Blob([data], { type: 'application/json' });
+	const url = URL.createObjectURL(blob);
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = 'schedule-backup.json';
+	a.click();
+	URL.revokeObjectURL(url);
+};
+const uploadBackup = document.getElementById('upload-backup') as HTMLDivElement;
+uploadBackup.onclick = () => {
+	const input = document.createElement('input');
+	input.type = 'file';
+	input.accept = '.json';
+	input.onchange = () => {
+		if (input.files && input.files[0]) {
+			const reader = new FileReader();
+			reader.onload = () => {
+				const data = reader.result as string;
+				try {
+					const parsedData: {
+						employees: Employee[];
+						weeks: Week[];
+						defaultWeek: DefaultWeek;
+						positions: string[];
+					} = JSON.parse(data, dateReviver);					
+					const msg: clientMessage = {
+						type: 'uploadBackup',
+						...parsedData,
+					};
+					sendMsg(msg);
+				} catch (error) {
+					blError('Error parsing JSON data', { data: error });
+					return;
+				}
+			};
+			reader.readAsText(input.files[0]);
+		}
+	};
+	input.click();
+};
 
 let employees: Employee[] = [];
 let weeks: Week[] = [];

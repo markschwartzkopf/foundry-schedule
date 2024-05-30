@@ -24,7 +24,14 @@ export type clientMessage =
 	  }
 	| { type: 'newWeek' }
 	| { type: 'changeEmployee'; employeeIndex: number; employee: Employee }
-	| { type: 'deleteEmployee'; employeeIndex: number };
+	| { type: 'deleteEmployee'; employeeIndex: number }
+	| {
+			type: 'uploadBackup';
+			employees: Employee[];
+			defaultWeek: DefaultWeek;
+			positions: string[];
+			weeks: Week[];
+	  };
 export type Employee = {
 	name: string;
 	positions: string[];

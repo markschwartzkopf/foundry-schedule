@@ -11,6 +11,7 @@ import {
 	getWeeks,
 	setDefaultWeek,
 	setEmployees,
+	setPositions,
 	setWeeks,
 } from './data';
 
@@ -31,6 +32,7 @@ const mimeTypes = {
 	'.eot': 'application/vnd.ms-fontobject',
 	'.otf': 'application/font-otf',
 	'.wasm': 'application/wasm',
+	'.zip': 'application/zip',
 };
 
 const STATIC_PATH = path.join(__dirname, '../../dist/browser/');
@@ -176,6 +178,23 @@ const httpServer = http
 									employees.splice(msg.employeeIndex, 1);
 									setEmployees();
 									const sMsg: serverMessage = { employees };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
+							case 'uploadBackup':
+								{
+									setEmployees(msg.employees);
+									setDefaultWeek(msg.defaultWeek);
+									setWeeks(msg.weeks);
+									setPositions(msg.positions);
+									const sMsg: serverMessage = {
+										employees: getEmployees(),
+										positions: getPositions(),
+										defaultWeek: getDefaultWeek(),
+										weeks: getWeeks(),
+									};
 									connections.forEach((conn) => {
 										conn.send(JSON.stringify(sMsg));
 									});
