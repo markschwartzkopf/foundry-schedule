@@ -381,6 +381,14 @@ function populateEmployees() {
 				if (isAm(shift)) incType('am');
 				if (isPm(shift)) incType('pm');
 			});
+			employee.conditions.forEach((condition) => {
+				if (
+					!totalsObj[condition.position] &&
+					(condition.relational === '>' ||
+						(condition.relational === '=' && condition.value > 0))
+				)
+					totalsObj[condition.position] = 0;
+			});
 			const totalsArr = Object.entries(totalsObj);
 			totalsArr.sort((a, b) => {
 				let rtn = 0;
@@ -393,8 +401,10 @@ function populateEmployees() {
 				if (rtn) return rtn;
 				return a[0].localeCompare(b[0]);
 			});
+
 			totalsArr.forEach(([position, total]) => {
 				const positionDiv = document.createElement('div');
+				let isRed = false;
 				positionDiv.innerHTML = `${
 					position === '' ? 'Total' : position
 				}: ${total}`;
@@ -413,12 +423,13 @@ function populateEmployees() {
 								condition.value
 							)
 						) {
+							isRed = true;
 							positionDiv.style.color = '#f00';
 							employeeName.style.color = '#f00';
 						}
 					}
 				});
-				employeeEl.appendChild(positionDiv);
+				if (total > 0 || isRed) employeeEl.appendChild(positionDiv);
 			});
 			if (hasConsecutiveShifts) {
 				const consecutiveDiv = document.createElement('div');
