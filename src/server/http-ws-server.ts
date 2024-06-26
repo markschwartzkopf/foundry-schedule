@@ -148,9 +148,12 @@ const httpServer = http
 								{
 									const weeks = getWeeks();
 									const firstDay = weeks[weeks.length - 1][6].date;
+									console.log('Previous: ' + firstDay.getUTCDay());
 									const newWeek = getDefaultWeek().map((day, index) => {
 										const date = new Date(firstDay);
-										date.setUTCDate(date.getDate() + index + 1);
+										console.log('PreviousPerDay: ' + date.getUTCDay());
+										date.setUTCDate(date.getUTCDate() + index + 1);
+										console.log(date.getUTCDay());
 										return { date, shifts: deepCopy(day.shifts) };
 									}) as Week;
 									weeks.push(newWeek);

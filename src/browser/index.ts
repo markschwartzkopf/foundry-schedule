@@ -421,7 +421,7 @@ function populateEmployees() {
 							!relationals[condition.relational](
 								condition.type === 'number' ? total : percentage,
 								condition.value
-							)
+							) && !(condition.type === 'percent' && total === 0)
 						) {
 							isRed = true;
 							positionDiv.style.color = '#f00';
@@ -438,6 +438,9 @@ function populateEmployees() {
 				employeeName.style.color = '#f00';
 				employeeEl.appendChild(consecutiveDiv);
 			}
+			const totalSpan = document.createElement('span');
+			totalSpan.innerHTML = totalsObj[''] ? totalsObj[''].toString() : '';
+			employeeName.appendChild(totalSpan);
 		}
 		employeesDiv.appendChild(employeeEl);
 	});
@@ -886,6 +889,15 @@ function populateWeeks() {
 			shiftDiv.appendChild(shiftEmployee);
 			shiftDiv.style.gridColumn = `${dayIndex + 1}`;
 			shiftDiv.style.gridRow = `${3 + shiftIndex}`;
+			if (!shift.employee && weekIndex > -1) {
+				let recommendedEmployees = 0;
+				employees.forEach((employee) => {
+					if (isRecommended(employee, shift, shiftIndex, dayIndex, weekIndex))
+						recommendedEmployees++;
+				});
+				shiftEmployee.innerHTML = recommendedEmployees.toString();
+				if(recommendedEmployees <= 1) shiftDiv.style.color = 'red';
+			}
 			shiftDiv.onclick = () => {
 				if (shiftDiv.classList.contains('selected')) {
 					unSelect();
