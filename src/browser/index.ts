@@ -286,7 +286,7 @@ function populateEmployees() {
 	) as HTMLDivElement;
 	employeesDiv.innerHTML = '';
 	employees.forEach((employee, employeeIndex) => {
-		const employeeEl = document.createElement('details');
+		const employeeEl = document.createElement('div');
 		employeeEl.className = 'employee-div';
 		employeeEl.style.backgroundColor = employeeColor(employeeIndex);
 		if (
@@ -334,19 +334,18 @@ function populateEmployees() {
 			});
 			newView('editEmployee');
 		};
-		const employeeName = document.createElement('summary');
-		employeeName.onclick = (e) => {
+		employeeEl.onclick = (e) => {
 			e.stopPropagation();
 		};
 		const employeeNameSpan = document.createElement('span');
+		employeeNameSpan.className = 'employee-name';
 		employeeNameSpan.innerHTML = employee.name;
 		employeeNameSpan.onclick = (e) => {
 			e.stopPropagation();
 			e.preventDefault();
 			employeeEl.click();
 		};
-		employeeName.appendChild(employeeNameSpan);
-		employeeEl.appendChild(employeeName);
+		employeeEl.appendChild(employeeNameSpan);
 		if (weekIndex >= 0 && weeks[weekIndex]) {
 			const week = weeks[weekIndex];
 			const shifts = week.flatMap((day, dayIndex) =>
@@ -402,7 +401,8 @@ function populateEmployees() {
 				return a[0].localeCompare(b[0]);
 			});
 
-			totalsArr.forEach(([position, total]) => {
+			console.log(totalsArr);
+			/* totalsArr.forEach(([position, total]) => {
 				const positionDiv = document.createElement('div');
 				let isRed = false;
 				positionDiv.innerHTML = `${
@@ -421,26 +421,29 @@ function populateEmployees() {
 							!relationals[condition.relational](
 								condition.type === 'number' ? total : percentage,
 								condition.value
-							) && !(condition.type === 'percent' && total === 0)
+							) &&
+							!(condition.type === 'percent' && total === 0)
 						) {
 							isRed = true;
 							positionDiv.style.color = '#f00';
-							employeeName.style.color = '#f00';
+							employeeEl.style.color = '#f00';
 						}
 					}
 				});
-				if (total > 0 || isRed) employeeEl.appendChild(positionDiv);
-			});
-			if (hasConsecutiveShifts) {
+				//if (total > 0 || isRed) employeeEl.appendChild(positionDiv);
+			}); */
+			/* if (hasConsecutiveShifts) {
 				const consecutiveDiv = document.createElement('div');
 				consecutiveDiv.innerHTML = 'Consecutive Shifts';
 				consecutiveDiv.style.color = '#f00';
-				employeeName.style.color = '#f00';
-				employeeEl.appendChild(consecutiveDiv);
-			}
-			const totalSpan = document.createElement('span');
-			totalSpan.innerHTML = totalsObj[''] ? totalsObj[''].toString() : '';
-			employeeName.appendChild(totalSpan);
+				employeeEl.style.color = '#f00';
+				//employeeEl.appendChild(consecutiveDiv);
+			} */
+			//const totalSpan = document.createElement('span');
+			//totalSpan.className = 'shift-meter';
+
+			//totalSpan.innerHTML = totalsObj[''] ? totalsObj[''].toString() : '';
+			employeeEl.appendChild(totalMeter(totalsObj[''] ? totalsObj[''] : 0));
 		}
 		employeesDiv.appendChild(employeeEl);
 	});
@@ -896,7 +899,7 @@ function populateWeeks() {
 						recommendedEmployees++;
 				});
 				shiftEmployee.innerHTML = recommendedEmployees.toString();
-				if(recommendedEmployees <= 1) shiftDiv.style.color = 'red';
+				if (recommendedEmployees <= 1) shiftDiv.style.color = 'red';
 			}
 			shiftDiv.onclick = () => {
 				if (shiftDiv.classList.contains('selected')) {
@@ -1172,6 +1175,7 @@ function isRecommended(
 	if (weeks.length === 0) return true;
 	let rtn = true;
 	const shiftDay = weeks[0][dayIndex].date.getUTCDay();
+	if (employee.positions.indexOf(shift.position) === -1) return false;
 	employee.unavailable.forEach((unavailable) => {
 		if (
 			unavailable.day === shiftDay &&

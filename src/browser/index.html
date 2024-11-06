@@ -55,6 +55,7 @@
 				padding: 0;
 				height: 100%;
 				width: 100%;
+				font-size: .8vw;
 			}
 			body {
 				display: flex;
@@ -122,6 +123,7 @@
 				flex-grow: 1;
 			}
 			.employee-div {
+				position: relative;
 				cursor: pointer;
 				width: calc(100% - 0.5em);
 				border-radius: 1em;
@@ -253,6 +255,19 @@
 				border-radius: 0.5em;
 				padding: 0.25em;
 				margin-top: 1em;
+			}
+			.shift-meter {
+				position: absolute;
+				background-color: #444;
+				width: 40%;
+				height: 1rem;
+				top: 50%;
+				right: 0.5rem;
+				transform: translateY(-50%);
+			}
+			.employee-name {
+				position: relative;
+				z-index: 1;
 			}
 		</style>
 	</head>
