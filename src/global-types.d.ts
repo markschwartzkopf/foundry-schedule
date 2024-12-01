@@ -36,6 +36,7 @@ export type Employee = {
 	name: string;
 	positions: string[];
 	conditions: Condition[];
+	desiredHours?: number;
 	timeOff: TimeOff[];
 	unavailable: Unavailable[];
 };

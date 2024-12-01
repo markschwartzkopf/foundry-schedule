@@ -10,32 +10,32 @@ import {
 	clientMessage,
 	errorData,
 	serverMessage,
-} from '../global-types';
+} from "../global-types";
 
 const dayOfWeekNames = [
-	'Sunday',
-	'Monday',
-	'Tuesday',
-	'Wednesday',
-	'Thursday',
-	'Friday',
-	'Saturday',
+	"Sunday",
+	"Monday",
+	"Tuesday",
+	"Wednesday",
+	"Thursday",
+	"Friday",
+	"Saturday",
 ];
 
 const viewElements = {
 	week: [
-		document.getElementById('view-week-dec') as HTMLDivElement,
-		document.getElementById('view-week') as HTMLDivElement,
-		document.getElementById('view-week-inc') as HTMLDivElement,
-		document.getElementById('primary') as HTMLDivElement,
+		document.getElementById("view-week-dec") as HTMLDivElement,
+		document.getElementById("view-week") as HTMLDivElement,
+		document.getElementById("view-week-inc") as HTMLDivElement,
+		document.getElementById("primary") as HTMLDivElement,
 	],
 	defaultWeek: [
-		document.getElementById('view-default-week') as HTMLDivElement,
-		document.getElementById('primary') as HTMLDivElement,
+		document.getElementById("view-default-week") as HTMLDivElement,
+		document.getElementById("primary") as HTMLDivElement,
 	],
-	positions: [document.getElementById('view-positions') as HTMLDivElement],
-	editEmployee: [document.getElementById('employee-edit') as HTMLDivElement],
-	editShift: [document.getElementById('shift-edit') as HTMLDivElement],
+	positions: [document.getElementById("view-positions") as HTMLDivElement],
+	editEmployee: [document.getElementById("employee-edit") as HTMLDivElement],
+	editShift: [document.getElementById("shift-edit") as HTMLDivElement],
 };
 viewElements.week[0].onclick = () => {
 	if (weekIndex > 0) {
@@ -45,9 +45,9 @@ viewElements.week[0].onclick = () => {
 	}
 };
 viewElements.week[1].onclick = () => {
-	if (view === 'week') return;
+	if (view === "week") return;
 	if (weekIndex < 0) weekIndex = weeks.length - 1;
-	newView('week');
+	newView("week");
 };
 viewElements.week[2].onclick = () => {
 	if (weekIndex < weeks.length - 1) {
@@ -55,39 +55,39 @@ viewElements.week[2].onclick = () => {
 		populateWeeks();
 		populateEmployees();
 	} else {
-		if (confirm('Create new week?')) {
-			const msg: clientMessage = { type: 'newWeek' };
+		if (confirm("Create new week?")) {
+			const msg: clientMessage = { type: "newWeek" };
 			sendMsg(msg);
 			weekIndex++;
 		}
 	}
 };
 viewElements.defaultWeek[0].onclick = () => {
-	if (view === 'defaultWeek') return;
+	if (view === "defaultWeek") return;
 	weekIndex = -1;
-	newView('defaultWeek');
+	newView("defaultWeek");
 };
-let view: keyof typeof viewElements = 'week';
+let view: keyof typeof viewElements = "week";
 
-const footerDiv = document.getElementById('footer') as HTMLDivElement;
+const footerDiv = document.getElementById("footer") as HTMLDivElement;
 const downloadBackup = document.getElementById(
-	'download-backup'
+	"download-backup"
 ) as HTMLDivElement;
 downloadBackup.onclick = () => {
 	const data = JSON.stringify({ employees, weeks, defaultWeek, positions });
-	const blob = new Blob([data], { type: 'application/json' });
+	const blob = new Blob([data], { type: "application/json" });
 	const url = URL.createObjectURL(blob);
-	const a = document.createElement('a');
+	const a = document.createElement("a");
 	a.href = url;
-	a.download = 'schedule-backup.json';
+	a.download = "schedule-backup.json";
 	a.click();
 	URL.revokeObjectURL(url);
 };
-const uploadBackup = document.getElementById('upload-backup') as HTMLDivElement;
+const uploadBackup = document.getElementById("upload-backup") as HTMLDivElement;
 uploadBackup.onclick = () => {
-	const input = document.createElement('input');
-	input.type = 'file';
-	input.accept = '.json';
+	const input = document.createElement("input");
+	input.type = "file";
+	input.accept = ".json";
 	input.onchange = () => {
 		if (input.files && input.files[0]) {
 			const reader = new FileReader();
@@ -101,12 +101,12 @@ uploadBackup.onclick = () => {
 						positions: string[];
 					} = JSON.parse(data, dateReviver);
 					const msg: clientMessage = {
-						type: 'uploadBackup',
+						type: "uploadBackup",
 						...parsedData,
 					};
 					sendMsg(msg);
 				} catch (error) {
-					blError('Error parsing JSON data', { data: error });
+					blError("Error parsing JSON data", { data: error });
 					return;
 				}
 			};
@@ -136,56 +136,58 @@ let selectedShift: {
 	shift: Shift;
 } | null = null;
 
-(document.getElementById('save-shift') as HTMLDivElement).onclick = () => {
+(document.getElementById("save-shift") as HTMLDivElement).onclick = () => {
 	if (!selectedShift) return;
 	const position = (
-		document.getElementById('shift-position') as HTMLInputElement
+		document.getElementById("shift-position") as HTMLInputElement
 	).value;
 	const start = new Date(
 		`1970-01-01T${
-			(document.getElementById('shift-start') as HTMLInputElement).value
+			(document.getElementById("shift-start") as HTMLInputElement).value
 		}:00.000Z`
 	);
 	const end = new Date(
 		`1970-01-01T${
-			(document.getElementById('shift-end') as HTMLInputElement).value
+			(document.getElementById("shift-end") as HTMLInputElement).value
 		}:00.000Z`
 	);
 	const employee = (
-		document.getElementById('shift-employee') as HTMLInputElement
+		document.getElementById("shift-employee") as HTMLInputElement
 	).value;
 	const msg: clientMessage = {
-		type: 'changeShift',
+		type: "changeShift",
 		...selectedShift,
 		shift: { position, start, end, employee },
 	};
 	sendMsg(msg);
-	newView(selectedShift.weekIndex >= 0 ? 'week' : 'defaultWeek');
+	newView(selectedShift.weekIndex >= 0 ? "week" : "defaultWeek");
 };
 
-(document.getElementById('save-employee') as HTMLDivElement).onclick = () => {
-	if (!selected || selected.type !== 'employee') return;
-	const name = (document.getElementById('employee-name') as HTMLInputElement)
+(document.getElementById("save-employee") as HTMLDivElement).onclick = () => {
+	if (!selected || selected.type !== "employee") return;
+	const name = (document.getElementById("employee-name") as HTMLInputElement)
 		.value;
 	selected.employee.name = name;
+	const hours = parseFloat((document.getElementById("employee-hours") as HTMLInputElement).value);
+	if (!isNaN(hours)) selected.employee.desiredHours = hours;
 	const msg: clientMessage = {
-		type: 'changeEmployee',
+		type: "changeEmployee",
 		employeeIndex: selected.employeeIndex,
 		employee: selected.employee,
 	};
 	sendMsg(msg);
-	newView(weekIndex >= 0 ? 'week' : 'defaultWeek');
+	newView(weekIndex >= 0 ? "week" : "defaultWeek");
 };
 
 type Selected =
 	| {
-			type: 'employee';
+			type: "employee";
 			element: HTMLElement | null;
 			employee: Employee;
 			employeeIndex: number;
 	  }
 	| {
-			type: 'shift';
+			type: "shift";
 			element: HTMLElement;
 			weekIndex: number;
 			dayIndex: number;
@@ -195,31 +197,31 @@ type Selected =
 let selected: Selected | null = null;
 let weeksReceived = false;
 
-const server_address = location.origin.replace(/^http/, 'ws');
+const server_address = location.origin.replace(/^http/, "ws");
 
 const ws = new WebSocket(server_address);
-ws.binaryType = 'arraybuffer';
+ws.binaryType = "arraybuffer";
 
 ws.onopen = () => {
 	console.log(`Connection to ${server_address} open`);
 };
 
 ws.onerror = (err) => {
-	blError('WebSocket error', { error: JSON.stringify(err) });
+	blError("WebSocket error", { error: JSON.stringify(err) });
 };
 
 ws.onmessage = (msg) => {
-	if (typeof msg.data === 'string') {
+	if (typeof msg.data === "string") {
 		try {
 			const parsedData = JSON.parse(msg.data, dateReviver) as serverMessage;
 			if (parsedData.employees) {
 				employees = parsedData.employees;
 				const employeeList = document.getElementById(
-					'employee-list'
+					"employee-list"
 				) as HTMLDataListElement;
-				employeeList.innerHTML = '';
+				employeeList.innerHTML = "";
 				employees.forEach((employee) => {
-					const option = document.createElement('option');
+					const option = document.createElement("option");
 					option.value = employee.name;
 					employeeList.appendChild(option);
 				});
@@ -243,20 +245,20 @@ ws.onmessage = (msg) => {
 			if (parsedData.positions) {
 				positions = parsedData.positions;
 				const positionsList = document.getElementById(
-					'positions-list'
+					"positions-list"
 				) as HTMLDataListElement;
-				positionsList.innerHTML = '';
+				positionsList.innerHTML = "";
 				positions.forEach((position) => {
-					const option = document.createElement('option');
+					const option = document.createElement("option");
 					option.value = position;
 					positionsList.appendChild(option);
 				});
 			}
 		} catch (error) {
-			blError('Error parsing JSON data', { data: error });
+			blError("Error parsing JSON data", { data: error });
 		}
 	} else {
-		blError('Received non-string data', { data: msg.data });
+		blError("Received non-string data", { data: msg.data });
 	}
 };
 
@@ -274,7 +276,7 @@ function blError(description: string, data?: errorData) {
 //helper function to convert JSON string dates to Date objects
 function dateReviver(key: string, value: any) {
 	const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
-	if (typeof value === 'string' && dateFormat.test(value)) {
+	if (typeof value === "string" && dateFormat.test(value)) {
 		return new Date(value);
 	}
 	return value;
@@ -282,16 +284,16 @@ function dateReviver(key: string, value: any) {
 
 function populateEmployees() {
 	const employeesDiv = document.getElementById(
-		'employees-div'
+		"employees-div"
 	) as HTMLDivElement;
-	employeesDiv.innerHTML = '';
+	employeesDiv.innerHTML = "";
 	employees.forEach((employee, employeeIndex) => {
-		const employeeEl = document.createElement('details');
-		employeeEl.className = 'employee-div';
+		const employeeEl = document.createElement("div");
+		employeeEl.className = "employee-div";
 		employeeEl.style.backgroundColor = employeeColor(employeeIndex);
 		if (
 			selected &&
-			selected.type === 'shift' &&
+			selected.type === "shift" &&
 			!isRecommended(
 				employee,
 				selected.shift,
@@ -300,15 +302,15 @@ function populateEmployees() {
 				selected.weekIndex
 			)
 		) {
-			employeeEl.classList.add('unrecommended');
+			employeeEl.classList.add("unrecommended");
 		}
 		employeeEl.onclick = () => {
-			if (employeeEl.classList.contains('selected')) {
+			if (employeeEl.classList.contains("selected")) {
 				unSelect();
 			} else {
-				if (selected && selected.type === 'shift' && selectedShift) {
+				if (selected && selected.type === "shift" && selectedShift) {
 					const msg: clientMessage = {
-						type: 'changeShift',
+						type: "changeShift",
 						...selectedShift,
 						shift: {
 							...selectedShift.shift,
@@ -318,7 +320,7 @@ function populateEmployees() {
 					sendMsg(msg);
 				} else
 					select({
-						type: 'employee',
+						type: "employee",
 						element: employeeEl,
 						employee: deepCopy(employee),
 						employeeIndex,
@@ -327,26 +329,44 @@ function populateEmployees() {
 		};
 		employeeEl.ondblclick = () => {
 			select({
-				type: 'employee',
+				type: "employee",
 				element: employeeEl,
 				employee: deepCopy(employee),
 				employeeIndex,
 			});
-			newView('editEmployee');
+			newView("editEmployee");
 		};
-		const employeeName = document.createElement('summary');
-		employeeName.onclick = (e) => {
-			e.stopPropagation();
-		};
-		const employeeNameSpan = document.createElement('span');
-		employeeNameSpan.innerHTML = employee.name;
-		employeeNameSpan.onclick = (e) => {
+		const employeeName = document.createElement("div");
+		const employeeNameSpan = document.createElement("span");
+		const showHideInfo = document.createElement("span");
+		showHideInfo.className = "show-hide-info";
+		showHideInfo.innerHTML = "&#9654;&nbsp;";
+		const detailsDiv = document.createElement("div");
+		detailsDiv.style.display = "none";
+		showHideInfo.onclick = (e) => {
 			e.stopPropagation();
 			e.preventDefault();
-			employeeEl.click();
+			if (showHideInfo.classList.contains("showing")) {
+				showHideInfo.classList.remove("showing");
+				showHideInfo.innerHTML = "&#9654;&nbsp;";
+				detailsDiv.style.display = "none";
+			} else {
+				showHideInfo.classList.add("showing");
+				showHideInfo.innerHTML = "&#9660;&nbsp;";
+				detailsDiv.style.display = "";
+			}
 		};
+		showHideInfo.ondblclick = (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+		};
+		employeeNameSpan.appendChild(showHideInfo);
+		const employeeNameSpanSpan = document.createElement("span");
+		employeeNameSpanSpan.innerHTML = employee.name;
+		employeeNameSpan.appendChild(employeeNameSpanSpan);
 		employeeName.appendChild(employeeNameSpan);
 		employeeEl.appendChild(employeeName);
+		employeeEl.appendChild(detailsDiv);
 		if (weekIndex >= 0 && weeks[weekIndex]) {
 			const week = weeks[weekIndex];
 			const shifts = week.flatMap((day, dayIndex) =>
@@ -359,7 +379,7 @@ function populateEmployees() {
 			const employeeShifts = shifts.filter(
 				(shift) => shift.employee === employee.name
 			);
-			const totalsObj: { [position: string]: number } = { '': 0 };
+			const totalsObj: { [position: string]: number } = { "": 0 };
 			let hasConsecutiveShifts = false;
 			employeeShifts.forEach((shift) => {
 				if (
@@ -372,102 +392,118 @@ function populateEmployees() {
 					)
 				)
 					hasConsecutiveShifts = true;
-				totalsObj['']++;
+				const length =
+					(shift.end.getTime() - shift.start.getTime()) / 1000 / 60 / 60;
+				totalsObj[""] += length;
 				const incType = (shiftType) => {
-					if (shiftType in totalsObj) totalsObj[shiftType]++;
-					else totalsObj[shiftType] = 1;
+					if (shiftType in totalsObj) totalsObj[shiftType] += length;
+					else totalsObj[shiftType] = length;
 				};
 				incType(shift.position);
-				if (isAm(shift)) incType('am');
-				if (isPm(shift)) incType('pm');
+				if (isAm(shift)) incType("am");
+				if (isPm(shift)) incType("pm");
 			});
 			employee.conditions.forEach((condition) => {
 				if (
 					!totalsObj[condition.position] &&
-					(condition.relational === '>' ||
-						(condition.relational === '=' && condition.value > 0))
+					(condition.relational === ">" ||
+						(condition.relational === "=" && condition.value > 0))
 				)
 					totalsObj[condition.position] = 0;
 			});
 			const totalsArr = Object.entries(totalsObj);
 			totalsArr.sort((a, b) => {
 				let rtn = 0;
-				if (a[0] === 'am') rtn = 1;
-				if (b[0] === 'am') rtn = -1;
-				if (b[0] === 'pm') rtn = -1;
-				if (a[0] === 'pm') rtn = 1;
-				if (a[0] === '') rtn = -1;
-				if (b[0] === '') rtn = 1;
+				if (a[0] === "am") rtn = 1;
+				if (b[0] === "am") rtn = -1;
+				if (b[0] === "pm") rtn = -1;
+				if (a[0] === "pm") rtn = 1;
+				if (a[0] === "") rtn = -1;
+				if (b[0] === "") rtn = 1;
 				if (rtn) return rtn;
 				return a[0].localeCompare(b[0]);
 			});
-
 			totalsArr.forEach(([position, total]) => {
-				const positionDiv = document.createElement('div');
+				const positionDiv = document.createElement("div");
 				let isRed = false;
 				positionDiv.innerHTML = `${
-					position === '' ? 'Total' : position
+					position === "" ? "Total" : position
 				}: ${total}`;
 				employee.conditions.forEach((condition) => {
 					if (condition.position === position) {
 						const relationals = {
-							'>': (a, b) => a > b,
-							'<': (a, b) => a < b,
-							'=': (a, b) => a === b,
+							">": (a, b) => a > b,
+							"<": (a, b) => a < b,
+							"=": (a, b) => a === b,
 						};
-						const totalShifts = totalsObj[''];
+						const totalShifts = totalsObj[""];
 						const percentage = totalShifts ? (100 * total) / totalShifts : 0;
 						if (
 							!relationals[condition.relational](
-								condition.type === 'number' ? total : percentage,
+								condition.type === "number" ? total : percentage,
 								condition.value
-							) && !(condition.type === 'percent' && total === 0)
+							) &&
+							!(condition.type === "percent" && total === 0)
 						) {
 							isRed = true;
-							positionDiv.style.color = '#f00';
-							employeeName.style.color = '#f00';
+							positionDiv.style.color = "#f00";
+							employeeName.style.color = "#f00";
 						}
 					}
 				});
-				if (total > 0 || isRed) employeeEl.appendChild(positionDiv);
+				if (total > 0 || isRed) detailsDiv.appendChild(positionDiv);
 			});
 			if (hasConsecutiveShifts) {
-				const consecutiveDiv = document.createElement('div');
-				consecutiveDiv.innerHTML = 'Consecutive Shifts';
-				consecutiveDiv.style.color = '#f00';
-				employeeName.style.color = '#f00';
-				employeeEl.appendChild(consecutiveDiv);
+				const consecutiveDiv = document.createElement("div");
+				consecutiveDiv.innerHTML = "Consecutive Shifts";
+				consecutiveDiv.style.color = "#f00";
+				employeeName.style.color = "#f00";
+				detailsDiv.appendChild(consecutiveDiv);
 			}
-			const totalSpan = document.createElement('span');
-			totalSpan.innerHTML = totalsObj[''] ? totalsObj[''].toString() : '';
+			const totalSpan = document.createElement("span");
+			let percentage: number | null = null
+			if (employee.desiredHours) {
+				const totalHours = totalsObj[""];
+				percentage = (100 * totalHours) / employee.desiredHours;
+				percentage = Math.round(percentage);
+				totalSpan.innerHTML = `${totalHours} (${percentage.toFixed(2)}%)`;
+				if (Math.abs(percentage - 100) > 10) {
+					totalSpan.style.color = "#ff0";
+				}
+				if (Math.abs(percentage - 100) > 20) {
+					totalSpan.style.color = "#f00";
+				}
+			}
+
+			totalSpan.innerHTML = percentage === null ? "" : percentage + "%";
 			employeeName.appendChild(totalSpan);
 		}
 		employeesDiv.appendChild(employeeEl);
 	});
-	const unnassignedDiv = document.createElement('div');
-	unnassignedDiv.className = 'employee-div';
-	unnassignedDiv.innerHTML = 'Unassigned';
-	unnassignedDiv.classList.add('unassigned');
+	const unnassignedDiv = document.createElement("div");
+	unnassignedDiv.className = "employee-div";
+	unnassignedDiv.innerHTML = "Unassigned";
+	unnassignedDiv.classList.add("unassigned");
 	unnassignedDiv.onclick = () => {
-		if (unnassignedDiv.classList.contains('selected')) {
+		if (unnassignedDiv.classList.contains("selected")) {
 			unSelect();
 		} else {
-			if (selected && selected.type === 'shift' && selectedShift) {
+			if (selected && selected.type === "shift" && selectedShift) {
 				const msg: clientMessage = {
-					type: 'changeShift',
+					type: "changeShift",
 					...selectedShift,
 					shift: {
 						...selectedShift.shift,
-						employee: '',
+						employee: "",
 					},
 				};
 				sendMsg(msg);
 			} else
 				select({
-					type: 'employee',
+					type: "employee",
 					element: unnassignedDiv,
 					employee: {
-						name: '',
+						name: "",
 						positions: [],
 						conditions: [],
 						timeOff: [],
@@ -478,114 +514,115 @@ function populateEmployees() {
 		}
 	};
 	employeesDiv.appendChild(unnassignedDiv);
-	const addEmployeeDiv = document.createElement('div');
-	addEmployeeDiv.className = 'employee-div';
-	addEmployeeDiv.classList.add('add-employee');
-	addEmployeeDiv.innerHTML = 'Add Employee';
+	const addEmployeeDiv = document.createElement("div");
+	addEmployeeDiv.className = "employee-div";
+	addEmployeeDiv.classList.add("add-employee");
+	addEmployeeDiv.innerHTML = "Add Employee";
 	addEmployeeDiv.onclick = () => {
 		const newEmployee: Employee = {
-			name: '',
+			name: "",
 			positions: [],
 			conditions: [],
 			timeOff: [],
 			unavailable: [],
 		};
 		selected = {
-			type: 'employee',
+			type: "employee",
 			element: null,
 			employee: newEmployee,
 			employeeIndex: employees.length,
 		};
 		populateEmployeePage();
-		newView('editEmployee');
+		newView("editEmployee");
 	};
 	employeesDiv.appendChild(addEmployeeDiv);
 }
 
 function populateEmployeePage() {
-	if (!selected || selected.type !== 'employee') {
-		blError('No employee selected');
+	if (!selected || selected.type !== "employee") {
+		blError("No employee selected");
 		return;
 	}
 	const employee = selected.employee;
-	(document.getElementById('employee-name') as HTMLInputElement).value =
+	(document.getElementById("employee-name") as HTMLInputElement).value =
 		employee.name;
+	(document.getElementById("employee-hours") as HTMLInputElement).value = employee.desiredHours? employee.desiredHours.toString() : "";
 	const populateList = (
-		list: 'positions' | 'conditions' | 'unavailable' | 'timeOff'
+		list: "positions" | "conditions" | "unavailable" | "timeOff"
 	) => {
 		const listDiv = document.getElementById(
-			`employee-${list === 'timeOff' ? 'time-off' : list}-list`
+			`employee-${list === "timeOff" ? "time-off" : list}-list`
 		) as HTMLDivElement;
-		listDiv.innerHTML = '';
+		listDiv.innerHTML = "";
 		if (employee[list].length === 0) {
-			listDiv.style.display = 'none';
-		} else listDiv.style.display = '';
+			listDiv.style.display = "none";
+		} else listDiv.style.display = "";
 
 		employee[list].forEach((item, index) => {
-			const itemDiv = document.createElement('div');
-			itemDiv.className = 'employee-list-item';
-			const stringDiv = document.createElement('div');
+			const itemDiv = document.createElement("div");
+			itemDiv.className = "employee-list-item";
+			const stringDiv = document.createElement("div");
 			switch (list) {
-				case 'positions':
+				case "positions":
 					{
 						stringDiv.innerHTML = item;
 					}
 					break;
-				case 'conditions':
+				case "conditions":
 					{
 						const condition = item as Condition;
 						const relational =
-							condition.relational === '<'
-								? 'Less than'
-								: condition.relational === '='
-								? 'Exactly'
-								: 'More than';
+							condition.relational === "<"
+								? "Less than"
+								: condition.relational === "="
+								? "Exactly"
+								: "More than";
 						stringDiv.innerHTML = `${relational} ${condition.value}${
-							condition.type === 'percent' ? '%' : ''
+							condition.type === "percent" ? "%" : ""
 						} ${condition.position} shifts`;
 					}
 					break;
-				case 'unavailable':
+				case "unavailable":
 					{
 						stringDiv.innerHTML = `${dayOfWeekNames[item.day]}: ${
-							getUTCTime(item.start) === '12:00am' &&
-							getUTCTime(item.end) === '11:59pm'
-								? 'All Day'
+							getUTCTime(item.start) === "12:00am" &&
+							getUTCTime(item.end) === "11:59pm"
+								? "All Day"
 								: `${getUTCTime(item.start)} - ${getUTCTime(item.end)}`
 						}: ${item.reason}`;
 					}
 					break;
-				case 'timeOff':
+				case "timeOff":
 					{
 						const timeOff = item as TimeOff;
 						stringDiv.innerHTML = `${
-							getUTCTime(timeOff.start) === '12:00am'
-								? timeOff.start.toLocaleDateString('en-US', { timeZone: 'UTC' })
+							getUTCTime(timeOff.start) === "12:00am"
+								? timeOff.start.toLocaleDateString("en-US", { timeZone: "UTC" })
 								: timeOff.start
-										.toLocaleString('en-US', {
-											timeZone: 'UTC',
+										.toLocaleString("en-US", {
+											timeZone: "UTC",
 										})
 										.toLowerCase()
 						} - ${
-							getUTCTime(timeOff.end) === '11:59pm'
-								? timeOff.end.toLocaleDateString('en-US', { timeZone: 'UTC' })
+							getUTCTime(timeOff.end) === "11:59pm"
+								? timeOff.end.toLocaleDateString("en-US", { timeZone: "UTC" })
 								: timeOff.end
-										.toLocaleString('en-US', {
-											timeZone: 'UTC',
+										.toLocaleString("en-US", {
+											timeZone: "UTC",
 										})
 										.toLowerCase()
 						}: ${item.reason}`;
 					}
 					break;
 				default:
-					console.log('default');
+					console.log("default");
 					break;
 			}
 			itemDiv.appendChild(stringDiv);
 			const trashcan = trashcanSvg();
-			trashcan.style.stroke = 'white';
-			trashcan.style.height = '1.5em';
-			trashcan.classList.add('svg-button');
+			trashcan.style.stroke = "white";
+			trashcan.style.height = "1.5em";
+			trashcan.classList.add("svg-button");
 			trashcan.onclick = () => {
 				employee[list].splice(index, 1);
 				populateList(list);
@@ -594,103 +631,103 @@ function populateEmployeePage() {
 			listDiv.appendChild(itemDiv);
 		});
 		switch (list) {
-			case 'positions':
+			case "positions":
 				{
 					const input = document.getElementById(
-						'new-employee-position'
+						"new-employee-position"
 					) as HTMLInputElement;
 					const add = document.getElementById(
-						'add-employee-position'
+						"add-employee-position"
 					) as HTMLDivElement;
 					const processInput = () => {
 						if (input.value && !employee.positions.includes(input.value)) {
-							add.style.display = '';
-						} else add.style.display = 'none';
+							add.style.display = "";
+						} else add.style.display = "none";
 					};
 					input.onchange = processInput;
 					input.onkeyup = processInput;
 					add.onclick = () => {
 						if (input.value && !employee.positions.includes(input.value)) {
 							employee.positions.push(input.value);
-							populateList('positions');
+							populateList("positions");
 						}
 					};
 				}
 				break;
-			case 'conditions':
+			case "conditions":
 				{
 					const relationalSelect = document.getElementById(
-						'employee-condition-relational'
+						"employee-condition-relational"
 					) as HTMLSelectElement;
 					const valueInput = document.getElementById(
-						'employee-condition-value'
+						"employee-condition-value"
 					) as HTMLInputElement;
 					const typeSelect = document.getElementById(
-						'employee-condition-value-type'
+						"employee-condition-value-type"
 					) as HTMLSelectElement;
 					const positionInput = document.getElementById(
-						'employee-condition-position'
+						"employee-condition-position"
 					) as HTMLSelectElement;
 					const add = document.getElementById(
-						'add-employee-condition'
+						"add-employee-condition"
 					) as HTMLDivElement;
-					positionInput.innerHTML = '';
-					const positionOptions = ['Any', 'am', 'pm', ...positions];
+					positionInput.innerHTML = "";
+					const positionOptions = ["Any", "am", "pm", ...positions];
 					positionOptions.forEach((position) => {
-						const option = document.createElement('option');
+						const option = document.createElement("option");
 						option.innerHTML = position;
-						option.value = position === 'Any' ? '' : position;
+						option.value = position === "Any" ? "" : position;
 						positionInput.appendChild(option);
 					});
 					const processInput = () => {
 						if (valueInput.value || +valueInput === 0) {
-							add.style.display = '';
-						} else add.style.display = 'none';
+							add.style.display = "";
+						} else add.style.display = "none";
 					};
 					relationalSelect.onchange = processInput;
 					valueInput.onchange = processInput;
 					typeSelect.onchange = processInput;
 					positionInput.onchange = processInput;
 					add.onclick = () => {
-						const relational = relationalSelect.value as '>' | '<' | '=';
+						const relational = relationalSelect.value as ">" | "<" | "=";
 						const value = +valueInput.value;
-						const type = typeSelect.value as 'number' | 'percent';
+						const type = typeSelect.value as "number" | "percent";
 						const position = positionInput.value;
 						employee.conditions.push({ relational, value, type, position });
-						populateList('conditions');
+						populateList("conditions");
 					};
 				}
 				break;
-			case 'unavailable':
+			case "unavailable":
 				{
 					const daySelect = document.getElementById(
-						'unavailable-day'
+						"unavailable-day"
 					) as HTMLSelectElement;
-					const allDay = document.getElementById('all-day') as HTMLInputElement;
+					const allDay = document.getElementById("all-day") as HTMLInputElement;
 					const startEnd = document.getElementById(
-						'unavailable-start-end'
+						"unavailable-start-end"
 					) as HTMLDivElement;
 					const startInput = document.getElementById(
-						'unavailable-start'
+						"unavailable-start"
 					) as HTMLInputElement;
 					const endInput = document.getElementById(
-						'unavailable-end'
+						"unavailable-end"
 					) as HTMLInputElement;
 					const reasonInput = document.getElementById(
-						'unavailable-reason'
+						"unavailable-reason"
 					) as HTMLInputElement;
 					const add = document.getElementById(
-						'add-unavailable'
+						"add-unavailable"
 					) as HTMLDivElement;
 					const processInput = () => {
 						if (allDay.checked) {
-							startEnd.style.display = 'none';
-							add.style.display = '';
+							startEnd.style.display = "none";
+							add.style.display = "";
 						} else {
-							startEnd.style.display = '';
+							startEnd.style.display = "";
 							if (startInput.value && endInput.value) {
-								add.style.display = '';
-							} else add.style.display = 'none';
+								add.style.display = "";
+							} else add.style.display = "none";
 						}
 					};
 					allDay.onchange = processInput;
@@ -708,28 +745,28 @@ function populateEmployeePage() {
 							: new Date(`1970-01-01T${endInput.value}:00.000Z`);
 						const reason = reasonInput.value;
 						employee.unavailable.push({ day, start, end, reason });
-						populateList('unavailable');
+						populateList("unavailable");
 					};
 				}
 				break;
-			case 'timeOff':
+			case "timeOff":
 				{
 					const startDateInput = document.getElementById(
-						'time-off-start'
+						"time-off-start"
 					) as HTMLInputElement;
 					const endDateInput = document.getElementById(
-						'time-off-end'
+						"time-off-end"
 					) as HTMLInputElement;
 					const startTimeInput = document.getElementById(
-						'time-off-start-time'
+						"time-off-start-time"
 					) as HTMLInputElement;
 					const endTimeInput = document.getElementById(
-						'time-off-end-time'
+						"time-off-end-time"
 					) as HTMLInputElement;
 					const reasonInput = document.getElementById(
-						'time-off-reason'
+						"time-off-reason"
 					) as HTMLInputElement;
-					const add = document.getElementById('add-time-off') as HTMLDivElement;
+					const add = document.getElementById("add-time-off") as HTMLDivElement;
 					const processInput = () => {
 						const startDate = new Date(startDateInput.value);
 						const endDate = new Date(endDateInput.value);
@@ -738,8 +775,8 @@ function populateEmployeePage() {
 							endDateInput.value &&
 							startDate <= endDate
 						) {
-							add.style.display = '';
-						} else add.style.display = 'none';
+							add.style.display = "";
+						} else add.style.display = "none";
 					};
 					startDateInput.onchange = processInput;
 					endDateInput.onchange = processInput;
@@ -756,16 +793,16 @@ function populateEmployeePage() {
 						);
 						const reason = reasonInput.value;
 						employee.timeOff.push({ start, end, reason });
-						populateList('timeOff');
+						populateList("timeOff");
 					};
 				}
 				break;
 		}
 	};
-	populateList('positions');
-	populateList('conditions');
-	populateList('unavailable');
-	populateList('timeOff');
+	populateList("positions");
+	populateList("conditions");
+	populateList("unavailable");
+	populateList("timeOff");
 }
 
 function populateWeeks() {
@@ -774,14 +811,14 @@ function populateWeeks() {
 	const week = (
 		weekIndex > -1 && weeks[weekIndex] ? weeks[weekIndex] : defaultWeek
 	) as Week | DefaultWeek;
-	const weekDiv = document.getElementById('week-div') as HTMLDivElement;
-	weekDiv.innerHTML = '';
+	const weekDiv = document.getElementById("week-div") as HTMLDivElement;
+	weekDiv.innerHTML = "";
 	const firstDay =
 		weeks[0] && weeks[0][0].date ? weeks[0][0].date.getUTCDay() : 0;
 	week.forEach((day: Day | DefaultDay, dayIndex) => {
 		const dayName = dayOfWeekNames[(firstDay + dayIndex) % 7];
-		const dayDiv = document.createElement('div');
-		dayDiv.className = 'day-of-week';
+		const dayDiv = document.createElement("div");
+		dayDiv.className = "day-of-week";
 		const dayAsDay = day as Day;
 		if (dayAsDay.date) {
 			dayAsDay.date.setUTCHours(0, 0, 0, 0);
@@ -797,16 +834,16 @@ function populateWeeks() {
 		dayDiv.style.gridColumn = `${dayIndex + 1}`;
 		dayDiv.style.gridRow = `${1}`;
 		weekDiv.appendChild(dayDiv);
-		const notesDiv = document.createElement('div');
-		notesDiv.className = 'day-notes';
+		const notesDiv = document.createElement("div");
+		notesDiv.className = "day-notes";
 		employees.forEach((employee) => {
 			employee.unavailable.forEach((unavailable) => {
 				if ((firstDay + dayIndex) % 7 === unavailable.day) {
-					const noteDiv = document.createElement('div');
+					const noteDiv = document.createElement("div");
 					noteDiv.innerHTML = `${employee.name} unavailable ${
-						getUTCTime(unavailable.start) === '12:00am' &&
-						getUTCTime(unavailable.end) === '11:59pm'
-							? 'all day'
+						getUTCTime(unavailable.start) === "12:00am" &&
+						getUTCTime(unavailable.end) === "11:59pm"
+							? "all day"
 							: `${getUTCTime(unavailable.start)} - ${getUTCTime(
 									unavailable.end
 							  )}`
@@ -825,24 +862,24 @@ function populateWeeks() {
 					);
 
 					if (startDate <= dayAsDay.date && endDate >= dayAsDay.date) {
-						const noteDiv = document.createElement('div');
+						const noteDiv = document.createElement("div");
 						noteDiv.innerHTML = `${employee.name} timeoff`;
 						let allDay = true;
 						if (
 							startDate.getTime() === dayAsDay.date.getTime() &&
-							getUTCTime(timeOff.start) !== '12:00am'
+							getUTCTime(timeOff.start) !== "12:00am"
 						) {
 							noteDiv.innerHTML += ` starting ${getUTCTime(timeOff.start)}`;
 							allDay = false;
 						}
 						if (
 							endDate.getTime() === dayAsDay.date.getTime() &&
-							getUTCTime(timeOff.end) !== '11:59pm'
+							getUTCTime(timeOff.end) !== "11:59pm"
 						) {
 							noteDiv.innerHTML += ` ending ${getUTCTime(timeOff.end)}`;
 							allDay = false;
 						}
-						if (allDay) noteDiv.innerHTML += ': all day';
+						if (allDay) noteDiv.innerHTML += ": all day";
 						noteDiv.title = timeOff.reason;
 						notesDiv.appendChild(noteDiv);
 					}
@@ -855,10 +892,10 @@ function populateWeeks() {
 			if (shiftIndex >= lastRowShiftIndex) {
 				lastRowShiftIndex = shiftIndex + 1;
 				weekDiv.style.gridTemplateRows =
-					'auto '.repeat(lastRowShiftIndex + 2) + '1fr';
+					"auto ".repeat(lastRowShiftIndex + 2) + "1fr";
 			}
-			const shiftDiv = document.createElement('div');
-			shiftDiv.className = 'shift';
+			const shiftDiv = document.createElement("div");
+			shiftDiv.className = "shift";
 			const employeeIndex = employees.findIndex(
 				(employee) => employee.name === shift.employee
 			);
@@ -866,26 +903,26 @@ function populateWeeks() {
 				shiftDiv.style.backgroundColor = employeeColor(
 					employees.findIndex((employee) => employee.name === shift.employee)
 				);
-			if (selected && selected.type === 'shift') {
+			if (selected && selected.type === "shift") {
 				if (
 					selected.weekIndex === weekIndex &&
 					selected.dayIndex === dayIndex &&
 					selected.shiftIndex === shiftIndex
 				) {
-					shiftDiv.classList.add('selected');
+					shiftDiv.classList.add("selected");
 					selected.element = shiftDiv;
 					selectedShift = { weekIndex, dayIndex, shiftIndex, shift };
 				}
 			}
-			const shiftDescription = document.createElement('div');
-			shiftDescription.className = 'shift-description';
+			const shiftDescription = document.createElement("div");
+			shiftDescription.className = "shift-description";
 			shiftDescription.innerHTML = `${shift.position}: ${getUTCTime(
 				shift.start
 			)} - ${getUTCTime(shift.end)}`;
 			shiftDiv.appendChild(shiftDescription);
-			const shiftEmployee = document.createElement('div');
-			shiftEmployee.className = 'shift-employee';
-			shiftEmployee.innerHTML = shift.employee ? shift.employee : '&nbsp;';
+			const shiftEmployee = document.createElement("div");
+			shiftEmployee.className = "shift-employee";
+			shiftEmployee.innerHTML = shift.employee ? shift.employee : "&nbsp;";
 			shiftDiv.appendChild(shiftEmployee);
 			shiftDiv.style.gridColumn = `${dayIndex + 1}`;
 			shiftDiv.style.gridRow = `${3 + shiftIndex}`;
@@ -896,14 +933,14 @@ function populateWeeks() {
 						recommendedEmployees++;
 				});
 				shiftEmployee.innerHTML = recommendedEmployees.toString();
-				if(recommendedEmployees <= 1) shiftDiv.style.color = 'red';
+				if (recommendedEmployees <= 1) shiftDiv.style.color = "red";
 			}
 			shiftDiv.onclick = () => {
-				if (shiftDiv.classList.contains('selected')) {
+				if (shiftDiv.classList.contains("selected")) {
 					unSelect();
 				} else {
 					select({
-						type: 'shift',
+						type: "shift",
 						element: shiftDiv,
 						weekIndex,
 						dayIndex,
@@ -914,45 +951,45 @@ function populateWeeks() {
 			};
 			shiftDiv.ondblclick = () => {
 				select({
-					type: 'shift',
+					type: "shift",
 					element: shiftDiv,
 					weekIndex,
 					dayIndex,
 					shiftIndex,
 					shift,
 				});
-				newView('editShift');
+				newView("editShift");
 			};
 			weekDiv.appendChild(shiftDiv);
 		});
-		const addShiftParent = document.createElement('div');
-		addShiftParent.className = 'add-shift-parent';
+		const addShiftParent = document.createElement("div");
+		addShiftParent.className = "add-shift-parent";
 		addShiftParent.style.gridColumn = `${dayIndex + 1}`;
 		addShiftParent.style.gridRow = `${3 + day.shifts.length}`;
-		const addShift = document.createElement('div');
-		addShift.classList.add('button', 'add-shift');
-		addShift.innerHTML = '+';
+		const addShift = document.createElement("div");
+		addShift.classList.add("button", "add-shift");
+		addShift.innerHTML = "+";
 		addShift.onclick = () => {
 			selectedShift = {
 				weekIndex,
 				dayIndex,
 				shiftIndex: day.shifts.length,
 				shift: {
-					position: 'Espresso',
-					employee: '',
+					position: "Espresso",
+					employee: "",
 					start: new Date(0),
 					end: new Date(0),
 				},
 			};
-			(document.getElementById('shift-position') as HTMLInputElement).value =
-				'';
-			(document.getElementById('shift-start') as HTMLInputElement).value =
+			(document.getElementById("shift-position") as HTMLInputElement).value =
+				"";
+			(document.getElementById("shift-start") as HTMLInputElement).value =
 				getUTCTime(new Date(0), true);
-			(document.getElementById('shift-end') as HTMLInputElement).value =
+			(document.getElementById("shift-end") as HTMLInputElement).value =
 				getUTCTime(new Date(0), true);
-			(document.getElementById('shift-employee') as HTMLInputElement).value =
-				'';
-			newView('editShift');
+			(document.getElementById("shift-employee") as HTMLInputElement).value =
+				"";
+			newView("editShift");
 		};
 		addShiftParent.appendChild(addShift);
 		weekDiv.appendChild(addShiftParent);
@@ -961,43 +998,43 @@ function populateWeeks() {
 
 function select(selectInfo: Selected) {
 	if (selected && selected.element)
-		selected.element.classList.remove('selected');
-	footerDiv.innerHTML = '';
+		selected.element.classList.remove("selected");
+	footerDiv.innerHTML = "";
 	selected = deepCopy(selectInfo);
-	if (selected.element) selected.element.classList.add('selected');
+	if (selected.element) selected.element.classList.add("selected");
 	switch (selected.type) {
-		case 'employee':
+		case "employee":
 			{
 				if (selected.employeeIndex < 0) {
-					footerDiv.innerHTML = '';
+					footerDiv.innerHTML = "";
 					return;
 				}
 				populateEmployeePage();
-				const statusSpan = document.createElement('span');
-				statusSpan.className = 'status';
+				const statusSpan = document.createElement("span");
+				statusSpan.className = "status";
 				statusSpan.innerHTML = `Selected Employee: ${
-					selected.employee.name ? selected.employee.name : 'Unassigned'
+					selected.employee.name ? selected.employee.name : "Unassigned"
 				}`;
 				footerDiv.appendChild(statusSpan);
-				const editEmployee = document.createElement('span');
-				editEmployee.className = 'button';
-				editEmployee.innerHTML = 'Edit';
+				const editEmployee = document.createElement("span");
+				editEmployee.className = "button";
+				editEmployee.innerHTML = "Edit";
 				editEmployee.onclick = () => {
-					newView('editEmployee');
+					newView("editEmployee");
 				};
 				footerDiv.appendChild(editEmployee);
-				const deleteEmployee = document.createElement('span');
-				deleteEmployee.className = 'button';
-				deleteEmployee.innerHTML = 'Delete';
+				const deleteEmployee = document.createElement("span");
+				deleteEmployee.className = "button";
+				deleteEmployee.innerHTML = "Delete";
 				deleteEmployee.onclick = () => {
 					if (
 						selected &&
-						selected.type === 'employee' &&
+						selected.type === "employee" &&
 						selected.employeeIndex >= 0
 					)
-						if (confirm('Really delete this employee?')) {
+						if (confirm("Really delete this employee?")) {
 							const msg: clientMessage = {
-								type: 'deleteEmployee',
+								type: "deleteEmployee",
 								employeeIndex: selected.employeeIndex,
 							};
 							sendMsg(msg);
@@ -1006,7 +1043,7 @@ function select(selectInfo: Selected) {
 				footerDiv.appendChild(deleteEmployee);
 			}
 			break;
-		case 'shift':
+		case "shift":
 			{
 				selectedShift = {
 					weekIndex: selected.weekIndex,
@@ -1014,36 +1051,36 @@ function select(selectInfo: Selected) {
 					shiftIndex: selected.shiftIndex,
 					shift: deepCopy(selected.shift),
 				};
-				(document.getElementById('shift-position') as HTMLInputElement).value =
+				(document.getElementById("shift-position") as HTMLInputElement).value =
 					selected.shift.position;
-				(document.getElementById('shift-start') as HTMLInputElement).value =
+				(document.getElementById("shift-start") as HTMLInputElement).value =
 					getUTCTime(selected.shift.start, true);
-				(document.getElementById('shift-end') as HTMLInputElement).value =
+				(document.getElementById("shift-end") as HTMLInputElement).value =
 					getUTCTime(selected.shift.end, true);
-				(document.getElementById('shift-employee') as HTMLInputElement).value =
+				(document.getElementById("shift-employee") as HTMLInputElement).value =
 					selected.shift.employee;
-				const statusSpan = document.createElement('span');
+				const statusSpan = document.createElement("span");
 				statusSpan.innerHTML = `Selected Shift: ${
 					dayOfWeekNames[selected.dayIndex]
 				}, ${getUTCTime(selected.shift.start)} - ${getUTCTime(
 					selected.shift.end
 				)}, ${selected.shift.position}`;
 				footerDiv.appendChild(statusSpan);
-				const editShift = document.createElement('span');
-				editShift.className = 'button';
-				editShift.innerHTML = 'Edit';
+				const editShift = document.createElement("span");
+				editShift.className = "button";
+				editShift.innerHTML = "Edit";
 				editShift.onclick = () => {
-					newView('editShift');
+					newView("editShift");
 				};
 				footerDiv.appendChild(editShift);
-				const deleteShift = document.createElement('span');
-				deleteShift.className = 'button';
-				deleteShift.innerHTML = 'Delete';
+				const deleteShift = document.createElement("span");
+				deleteShift.className = "button";
+				deleteShift.innerHTML = "Delete";
 				deleteShift.onclick = () => {
 					if (!selectedShift) return;
-					if (confirm('Really delete this shift?')) {
+					if (confirm("Really delete this shift?")) {
 						const msg: clientMessage = {
-							type: 'deleteShift',
+							type: "deleteShift",
 							...selectedShift,
 						};
 						sendMsg(msg);
@@ -1058,38 +1095,38 @@ function select(selectInfo: Selected) {
 
 function newView(newView: typeof view) {
 	viewElements[view].forEach((element) => {
-		element.classList.remove('selected');
+		element.classList.remove("selected");
 	});
 	view = newView;
 	viewElements[view].forEach((element) => {
-		element.classList.add('selected');
+		element.classList.add("selected");
 	});
-	if (view === 'week' || view === 'defaultWeek') {
+	if (view === "week" || view === "defaultWeek") {
 		populateWeeks();
 	}
 }
 
 function unSelect() {
-	footerDiv.innerHTML = '';
+	footerDiv.innerHTML = "";
 	if (!selected) return;
-	if (selected.element) selected.element.classList.remove('selected');
+	if (selected.element) selected.element.classList.remove("selected");
 	selected = null;
 	populateEmployees();
 }
 
 //helper functions:
 function getUTCTime(date: Date, twentyfourHour?: true) {
-	const amPm: 'am' | 'pm' = date.getUTCHours() > 11 ? 'pm' : 'am';
+	const amPm: "am" | "pm" = date.getUTCHours() > 11 ? "pm" : "am";
 	const hours = twentyfourHour
-		? date.getUTCHours().toString().padStart(2, '0')
+		? date.getUTCHours().toString().padStart(2, "0")
 		: (date.getUTCHours() % 12 || 12).toString();
-	const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-	return `${hours}:${minutes}${twentyfourHour ? '' : amPm}`;
+	const minutes = date.getUTCMinutes().toString().padStart(2, "0");
+	return `${hours}:${minutes}${twentyfourHour ? "" : amPm}`;
 }
 
 function employeeColor(employeeIndex: number) {
-	if (employees.length === 0) return 'black';
-	if (employeeIndex >= employees.length) return 'black';
+	if (employees.length === 0) return "black";
+	if (employeeIndex >= employees.length) return "black";
 	const nonLinearity = 1.5; //0 is linear, higher is more extreme
 	const avoidRedEnd = 0.85; //0 to 1. How far along the hue progression to stop. 1 gets you all the way back to red for employeeIndex === employees.length
 	const constToAimCenter = 2.5; //number that shifts where the nonlinearity is centered. 1 is centered at 1, 2 is centered at 1/2, 2.5 is centered at 1/3
@@ -1172,6 +1209,7 @@ function isRecommended(
 	if (weeks.length === 0) return true;
 	let rtn = true;
 	const shiftDay = weeks[0][dayIndex].date.getUTCDay();
+	if (employee.positions.indexOf(shift.position) === -1) return false;
 	employee.unavailable.forEach((unavailable) => {
 		if (
 			unavailable.day === shiftDay &&
@@ -1225,7 +1263,7 @@ function deepCopy<T>(obj: T): T {
 	if (obj instanceof HTMLElement) {
 		return obj;
 	}
-	if (typeof obj === 'object' && obj !== null) {
+	if (typeof obj === "object" && obj !== null) {
 		const copy: any = Array.isArray(obj) ? [] : {};
 		Object.entries(obj).forEach(([key, value]) => {
 			copy[key] = deepCopy(value);
@@ -1237,21 +1275,21 @@ function deepCopy<T>(obj: T): T {
 
 function trashcanSvg() {
 	const svgElement = document.createElementNS(
-		'http://www.w3.org/2000/svg',
-		'svg'
+		"http://www.w3.org/2000/svg",
+		"svg"
 	);
-	svgElement.setAttribute('viewBox', '0 0 80 100');
+	svgElement.setAttribute("viewBox", "0 0 80 100");
 	const pathElement = document.createElementNS(
-		'http://www.w3.org/2000/svg',
-		'path'
+		"http://www.w3.org/2000/svg",
+		"path"
 	);
 	pathElement.setAttribute(
-		'd',
-		'M5 25 h 70 M25 25 v -13.5 a 6.5 6.5 0 0 1 6.5 -6.5 h 17 a 6.5 6.5 0 0 1 6.5 6.5 v13.5 M12 45 l4 44 a6.5 6.5 0 0 0 6.5 6 h35 a6.5 6.5 0 0 0 6.5 -6 l4 -44'
+		"d",
+		"M5 25 h 70 M25 25 v -13.5 a 6.5 6.5 0 0 1 6.5 -6.5 h 17 a 6.5 6.5 0 0 1 6.5 6.5 v13.5 M12 45 l4 44 a6.5 6.5 0 0 0 6.5 6 h35 a6.5 6.5 0 0 0 6.5 -6 l4 -44"
 	);
-	pathElement.style.strokeWidth = '10';
-	pathElement.style.strokeLinecap = 'round';
-	pathElement.style.fill = 'none';
+	pathElement.style.strokeWidth = "10";
+	pathElement.style.strokeLinecap = "round";
+	pathElement.style.fill = "none";
 	//pathElement.style.stroke = color;
 	svgElement.appendChild(pathElement);
 	return svgElement;
