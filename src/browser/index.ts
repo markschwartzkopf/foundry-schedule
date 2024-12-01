@@ -392,8 +392,9 @@ function populateEmployees() {
 					)
 				)
 					hasConsecutiveShifts = true;
-				const length =
+				let length =
 					(shift.end.getTime() - shift.start.getTime()) / 1000 / 60 / 60;
+				if (length < 0) length += 24;
 				totalsObj[""] += length;
 				const incType = (shiftType) => {
 					if (shiftType in totalsObj) totalsObj[shiftType] += length;
