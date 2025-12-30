@@ -51,6 +51,7 @@
 			html,
 			body {
 				font-family: Arial, Helvetica, sans-serif;
+				font-size: 1.1vh;
 				margin: 0;
 				padding: 0;
 				height: 100%;
@@ -126,7 +127,7 @@
 				width: calc(100% - 0.5em);
 				border-radius: 1em;
 				background-color: var(--employee-bgcolor);
-				margin: 0.25em;
+				margin: 1px;
 				padding: 0.5em;
 			}
 			details.employee-div {
@@ -167,16 +168,28 @@
 				border: 1px solid #999;
 				border-radius: 0.5em;
 				padding: 0.5em;
-				margin: 0.25em;
+				margin: 1px;
 				text-align: center;
 				display: flex;
 				flex-direction: column;
 				align-items: stretch;
 				gap: 0.5em;
 			}
+			.shift.stage {
+				border: 2px solid cyan;
+			}
+			.shift.interview {
+				border: 1px solid #ff0;
+			}
 			.shift.selected {
 				background-color: #777;
 				border: 2px solid #fff;
+			}
+			.shift.stage.selected {
+				border-color: #0f0;;
+			}
+			.shift.interview.selected {
+				border-color: #ff0;
 			}
 			.shift-description {
 				font-size: 0.9em;
