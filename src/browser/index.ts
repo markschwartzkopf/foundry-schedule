@@ -1,4 +1,4 @@
-import {
+import type {
   Condition,
   Day,
   DefaultDay,
@@ -552,6 +552,7 @@ function populateEmployeePage() {
     employee.name;
   (document.getElementById("employee-hours") as HTMLInputElement).value =
     employee.desiredHours ? employee.desiredHours.toString() : "";
+  resetEmployeeDraftInputs();
   const populateList = (
     list: "positions" | "conditions" | "unavailable" | "timeOff"
   ) => {
@@ -654,6 +655,8 @@ function populateEmployeePage() {
           add.onclick = () => {
             if (input.value && !employee.positions.includes(input.value)) {
               employee.positions.push(input.value);
+              input.value = "";
+              add.style.display = "none";
               populateList("positions");
             }
           };
@@ -699,6 +702,8 @@ function populateEmployeePage() {
             const type = typeSelect.value as "number" | "percent";
             const position = positionInput.value;
             employee.conditions.push({ relational, value, type, position });
+            valueInput.value = "";
+            add.style.display = "none";
             populateList("conditions");
           };
         }
@@ -750,6 +755,8 @@ function populateEmployeePage() {
               : new Date(`1970-01-01T${endInput.value}:00.000Z`);
             const reason = reasonInput.value;
             employee.unavailable.push({ day, start, end, reason });
+            reasonInput.value = "";
+            add.style.display = "none";
             populateList("unavailable");
           };
         }
@@ -798,6 +805,8 @@ function populateEmployeePage() {
             );
             const reason = reasonInput.value;
             employee.timeOff.push({ start, end, reason });
+            reasonInput.value = "";
+            add.style.display = "none";
             populateList("timeOff");
           };
         }
@@ -808,6 +817,24 @@ function populateEmployeePage() {
   populateList("conditions");
   populateList("unavailable");
   populateList("timeOff");
+}
+
+function resetEmployeeDraftInputs() {
+  (document.getElementById("new-employee-position") as HTMLInputElement).value =
+    "";
+  (document.getElementById("add-employee-position") as HTMLDivElement).style
+    .display = "none";
+  (document.getElementById("employee-condition-value") as HTMLInputElement)
+    .value = "";
+  (document.getElementById("add-employee-condition") as HTMLDivElement).style
+    .display = "none";
+  (document.getElementById("unavailable-reason") as HTMLInputElement).value =
+    "";
+  (document.getElementById("add-unavailable") as HTMLDivElement).style.display =
+    "none";
+  (document.getElementById("time-off-reason") as HTMLInputElement).value = "";
+  (document.getElementById("add-time-off") as HTMLDivElement).style.display =
+    "none";
 }
 
 function populateWeeks() {
@@ -1109,6 +1136,8 @@ function newView(newView: typeof view) {
   });
   if (view === "week" || view === "defaultWeek") {
     populateWeeks();
+  } else if (view === "editEmployee" && selected?.type === "employee") {
+    populateEmployeePage();
   }
 }
 
@@ -1269,37 +1298,22 @@ function isRecommended(
   )
     return false;
   if (weeks.length === 0) return true;
-  let rtn = true;
-  const shiftStartDay = weeks[0][dayIndex].date.getUTCDay();
-  let shiftEndDay = weeks[0][dayIndex].date.getUTCDay();
   if (employee.positions.indexOf(shift.position) === -1) return false;
-  const shiftStart = shift.start.getTime();
-  let shiftEnd = shift.end.getTime();
-  if (shiftEnd < shiftStart) {
-    shiftEnd += 24 * 60 * 60 * 1000;
-    shiftEndDay = (shiftEndDay + 1) % 7;
-  }
-  employee.unavailable.forEach((unavailable) => {
-    if (
-      unavailable.day === shiftStartDay &&
-      ((shift.start > unavailable.start && shift.start < unavailable.end) ||
-        (shift.end > unavailable.start && shift.end < unavailable.end) ||
-        (unavailable.start > shift.start && unavailable.start < shift.end) ||
-        (unavailable.end > shift.start && unavailable.end < shift.end))
-    ) {
-      rtn = false;
-      return false;
-    }
-    if (
-      unavailable.day === shiftEndDay &&
-      shift.end > unavailable.start &&
-      shift.end < unavailable.end
-    ) {
-      rtn = false;
-      return false;
-    }
-  });
-  if (!rtn) return false;
+  const shiftDay =
+    weekIndex >= 0
+      ? weeks[weekIndex][dayIndex].date.getUTCDay()
+      : weeks[0][dayIndex].date.getUTCDay();
+  const shiftRange = weeklyTimeRange(shiftDay, shift.start, shift.end);
+  if (
+    employee.unavailable.some((unavailable) =>
+      weeklyTimeRangesOverlap(
+        shiftRange,
+        weeklyTimeRange(unavailable.day, unavailable.start, unavailable.end)
+      )
+    )
+  )
+    return false;
+  let rtn = true;
   if (weekIndex >= 0) {
     const shiftDate = new Date(weeks[weekIndex][dayIndex].date.getTime());
     shiftDate.setUTCHours(0, 0, 0, 0);
@@ -1322,6 +1336,31 @@ function isRecommended(
     });
   }
   return rtn;
+}
+
+const MINUTES_PER_DAY = 24 * 60;
+const MINUTES_PER_WEEK = 7 * MINUTES_PER_DAY;
+
+function timeOfDayMinutes(date: Date) {
+  return date.getUTCHours() * 60 + date.getUTCMinutes();
+}
+
+function weeklyTimeRange(day: number, start: Date, end: Date) {
+  const rangeStart = day * MINUTES_PER_DAY + timeOfDayMinutes(start);
+  let rangeEnd = day * MINUTES_PER_DAY + timeOfDayMinutes(end);
+  if (rangeEnd <= rangeStart) rangeEnd += MINUTES_PER_DAY;
+  return { start: rangeStart, end: rangeEnd };
+}
+
+function weeklyTimeRangesOverlap(
+  range1: { start: number; end: number },
+  range2: { start: number; end: number }
+) {
+  return [-MINUTES_PER_WEEK, 0, MINUTES_PER_WEEK].some((offset) => {
+    const start2 = range2.start + offset;
+    const end2 = range2.end + offset;
+    return range1.start < end2 && start2 < range1.end;
+  });
 }
 
 function isGraveyard(shift: Shift) {
