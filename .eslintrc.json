@@ -10,7 +10,7 @@
 	"parserOptions": {
 		"ecmaVersion": "latest",
 		"sourceType": "module",
-		"project": ["server/tsconfig.json", "browser/tsconfig.json"]
+		"project": ["src/server/tsconfig.json", "src/browser/tsconfig.json"]
 	},
 	"ignorePatterns": ["/index.js", "/src/global-types.d.ts", "/dist/**/*"],
 	"plugins": ["@typescript-eslint", "promise"],
