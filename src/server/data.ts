@@ -1,11 +1,11 @@
 import fs from 'fs';
-import { DefaultWeek, Employee, Week } from '../global-types';
+import { DefaultWeek, Employee, Settings, Week } from '../global-types';
 import { blLog } from './logger';
 
 //starter data that will be overwritten from stored data if it exists
 let employees: Employee[] = [
-	{ name: 'Employee 1', positions: ['Register'], conditions: [], timeOff: [], unavailable: []},
-	{ name: 'Employee 2', positions: ['Register'], conditions: [], timeOff: [], unavailable: []},
+	{ name: 'Employee 1', positions: ['Register'], timeOff: [], unavailable: []},
+	{ name: 'Employee 2', positions: ['Register'], timeOff: [], unavailable: []},
 ];
 let defaultWeek: DefaultWeek = [
 	newDefaultDay(),
@@ -17,6 +17,12 @@ let defaultWeek: DefaultWeek = [
 	newDefaultDay(),
 ];
 let positions: string[] = ['Register', 'Espresso'];
+let settings: Settings = {
+	consecutiveMargin: 15.5,
+	namedTimeRanges: [
+		{ name: 'graveyard', start: timeOfDay(0, 0), end: timeOfDay(6, 0) },
+	],
+};
 let weeks: Week[];
 {
 	const today = new Date();
@@ -111,6 +117,22 @@ export function initializeData() {
 				});
 		})
 		.then(() => {
+			//settings
+			return fs.promises
+				.readFile('./data/settings.json')
+				.then((data) => {
+					console.log('reading settings file');
+					settings = normalizeSettings(JSON.parse(data.toString(), dateReviver));
+				})
+				.catch(async () => {
+					console.error('creating settings file');
+					fs.promises.writeFile(
+						dataDir + '/settings.json',
+						JSON.stringify(settings)
+					);
+				});
+		})
+		.then(() => {
 			//weeks
 			return fs.promises
 				.readFile('./data/weeks.json')
@@ -144,6 +166,10 @@ export function getWeeks() {
 	return weeks;
 }
 
+export function getSettings() {
+	return settings;
+}
+
 export function setEmployees(newEmployees?: Employee[]) {
 	if (newEmployees) employees = newEmployees;
 	fs.promises.writeFile('./data/employees.json', JSON.stringify(employees));
@@ -167,7 +193,31 @@ export function setWeeks(newWeeks?: Week[]) {
 	fs.promises.writeFile('./data/weeks.json', JSON.stringify(weeks));
 }
 
+export function setSettings(newSettings?: Settings) {
+	if (newSettings) settings = normalizeSettings(newSettings);
+	fs.promises.writeFile('./data/settings.json', JSON.stringify(settings));
+}
+
 //helper functions
+function normalizeSettings(newSettings?: Partial<Settings>): Settings {
+	return {
+		...settings,
+		...newSettings,
+		namedTimeRanges:
+			newSettings?.namedTimeRanges?.map((range) => ({
+				name: range.name,
+				start: range.start instanceof Date ? range.start : new Date(range.start),
+				end: range.end instanceof Date ? range.end : new Date(range.end),
+			})) ?? settings.namedTimeRanges,
+	};
+}
+
+function timeOfDay(hours: number, minutes: number) {
+	const time = new Date(0);
+	time.setUTCHours(hours, minutes, 0, 0);
+	return time;
+}
+
 function dateReviver(key: string, value: any) {
 	const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;
 	if (typeof value === 'string' && dateFormat.test(value)) {

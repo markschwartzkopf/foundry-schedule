@@ -8,10 +8,12 @@ import {
 	getDefaultWeek,
 	getEmployees,
 	getPositions,
+	getSettings,
 	getWeeks,
 	setDefaultWeek,
 	setEmployees,
 	setPositions,
+	setSettings,
 	setWeeks,
 } from './data';
 
@@ -75,13 +77,7 @@ const httpServer = http
 		const wss = new WebSocket.Server({ server: httpServer });
 
 		wss.on('connection', (ws) => {
-			const msg: serverMessage = {
-				employees: getEmployees(),
-				positions: getPositions(),
-				defaultWeek: getDefaultWeek(),
-				weeks: getWeeks(),
-			};
-			ws.send(JSON.stringify(msg));
+			ws.send(JSON.stringify(getAllDataMessage()));
 
 			connections.push(ws);
 			console.log(
@@ -186,18 +182,23 @@ const httpServer = http
 									});
 								}
 								break;
+							case 'changeSettings':
+								{
+									setSettings(msg.settings);
+									const sMsg: serverMessage = { settings: getSettings() };
+									connections.forEach((conn) => {
+										conn.send(JSON.stringify(sMsg));
+									});
+								}
+								break;
 							case 'uploadBackup':
 								{
 									setEmployees(msg.employees);
 									setDefaultWeek(msg.defaultWeek);
 									setWeeks(msg.weeks);
 									setPositions(msg.positions);
-									const sMsg: serverMessage = {
-										employees: getEmployees(),
-										positions: getPositions(),
-										defaultWeek: getDefaultWeek(),
-										weeks: getWeeks(),
-									};
+									setSettings(msg.settings);
+									const sMsg = getAllDataMessage();
 									connections.forEach((conn) => {
 										conn.send(JSON.stringify(sMsg));
 									});
@@ -227,6 +228,16 @@ const httpServer = http
 			});
 		});
 	});
+
+function getAllDataMessage(): serverMessage {
+	return {
+		employees: getEmployees(),
+		positions: getPositions(),
+		defaultWeek: getDefaultWeek(),
+		weeks: getWeeks(),
+		settings: getSettings(),
+	};
+}
 
 function dateReviver(key: string, value: any) {
 	const dateFormat = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/;

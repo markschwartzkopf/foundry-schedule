@@ -7,6 +7,7 @@ export type serverMessage = {
 	positions?: string[];
 	weeks?: Week[];
 	defaultWeek?: DefaultWeek;
+	settings?: Settings;
 };
 export type clientMessage =
 	| {
@@ -25,17 +26,28 @@ export type clientMessage =
 	| { type: 'newWeek' }
 	| { type: 'changeEmployee'; employeeIndex: number; employee: Employee }
 	| { type: 'deleteEmployee'; employeeIndex: number }
+	| { type: 'changeSettings'; settings: Settings }
 	| {
 			type: 'uploadBackup';
 			employees: Employee[];
 			defaultWeek: DefaultWeek;
 			positions: string[];
 			weeks: Week[];
+			settings?: Settings;
 	  };
+export type Settings = {
+	consecutiveMargin: number;
+	namedTimeRanges: NamedTimeRange[];
+};
+export type NamedTimeRange = {
+	name: string;
+	start: Date;
+	end: Date;
+};
 export type Employee = {
 	name: string;
 	positions: string[];
-	conditions: Condition[];
+	conditions?: Condition[];
 	desiredHours?: number;
 	timeOff: TimeOff[];
 	unavailable: Unavailable[];

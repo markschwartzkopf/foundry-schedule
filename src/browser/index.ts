@@ -1,9 +1,10 @@
 import type {
-  Condition,
   Day,
   DefaultDay,
   DefaultWeek,
   Employee,
+  NamedTimeRange,
+  Settings,
   Shift,
   TimeOff,
   Week,
@@ -11,8 +12,6 @@ import type {
   errorData,
   serverMessage,
 } from "../global-types";
-
-const CONSECUTIVE_MARGIN = 15.5; // hours
 
 const dayOfWeekNames = [
   "Sunday",
@@ -76,7 +75,13 @@ const downloadBackup = document.getElementById(
   "download-backup"
 ) as HTMLDivElement;
 downloadBackup.onclick = () => {
-  const data = JSON.stringify({ employees, weeks, defaultWeek, positions });
+  const data = JSON.stringify({
+    employees,
+    weeks,
+    defaultWeek,
+    positions,
+    settings,
+  });
   const blob = new Blob([data], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
@@ -101,6 +106,7 @@ uploadBackup.onclick = () => {
             weeks: Week[];
             defaultWeek: DefaultWeek;
             positions: string[];
+            settings?: Settings;
           } = JSON.parse(data, dateReviver);
           const msg: clientMessage = {
             type: "uploadBackup",
@@ -120,6 +126,79 @@ uploadBackup.onclick = () => {
 
 let employees: Employee[] = [];
 let weeks: Week[] = [];
+let settings: Settings = {
+  consecutiveMargin: 15.5,
+  namedTimeRanges: [
+    {
+      name: "graveyard",
+      start: timeOfDay(0, 0),
+      end: timeOfDay(6, 0),
+    },
+  ],
+};
+const consecutiveMarginInput = document.getElementById(
+  "consecutive-margin"
+) as HTMLInputElement;
+const newTimeRangeNameInput = document.getElementById(
+  "new-time-range-name"
+) as HTMLInputElement;
+const newTimeRangeStartInput = document.getElementById(
+  "new-time-range-start"
+) as HTMLInputElement;
+const newTimeRangeEndInput = document.getElementById(
+  "new-time-range-end"
+) as HTMLInputElement;
+const addTimeRangeButton = document.getElementById(
+  "add-time-range"
+) as HTMLDivElement;
+consecutiveMarginInput.onchange = () => {
+  const consecutiveMargin = parseFloat(consecutiveMarginInput.value);
+  if (isNaN(consecutiveMargin) || consecutiveMargin < 0) {
+    updateSettingsInputs();
+    return;
+  }
+  settings = { ...settings, consecutiveMargin };
+  populateEmployees();
+  populateWeeks();
+  sendMsg({ type: "changeSettings", settings });
+};
+updateSettingsInputs();
+const processNewTimeRange = () => {
+  const isValid =
+    newTimeRangeNameInput.value &&
+    newTimeRangeStartInput.value &&
+    newTimeRangeEndInput.value;
+  addTimeRangeButton.style.display =
+    isValid ? "" : "none";
+};
+newTimeRangeNameInput.onchange = processNewTimeRange;
+newTimeRangeNameInput.onkeyup = processNewTimeRange;
+newTimeRangeStartInput.onchange = processNewTimeRange;
+newTimeRangeEndInput.onchange = processNewTimeRange;
+addTimeRangeButton.onclick = () => {
+  if (
+    !newTimeRangeNameInput.value ||
+    !newTimeRangeStartInput.value ||
+    !newTimeRangeEndInput.value
+  )
+    return;
+  settings = {
+    ...settings,
+    namedTimeRanges: [
+      ...settings.namedTimeRanges,
+      {
+        name: newTimeRangeNameInput.value,
+        start: inputTimeToDate(newTimeRangeStartInput.value),
+        end: inputTimeToDate(newTimeRangeEndInput.value),
+      },
+    ],
+  };
+  newTimeRangeNameInput.value = "";
+  newTimeRangeStartInput.value = "";
+  newTimeRangeEndInput.value = "";
+  processNewTimeRange();
+  commitSettings();
+};
 let weekIndex = 0;
 let defaultWeek: DefaultWeek = [
   { shifts: [] },
@@ -218,6 +297,10 @@ ws.onmessage = (msg) => {
   if (typeof msg.data === "string") {
     try {
       const parsedData = JSON.parse(msg.data, dateReviver) as serverMessage;
+      if (parsedData.settings) {
+        settings = normalizeSettings(parsedData.settings);
+        updateSettingsInputs();
+      }
       if (parsedData.employees) {
         employees = parsedData.employees;
         const employeeList = document.getElementById(
@@ -242,7 +325,7 @@ ws.onmessage = (msg) => {
       if (parsedData.defaultWeek) {
         defaultWeek = parsedData.defaultWeek;
       }
-      if (parsedData.weeks || parsedData.defaultWeek) {
+      if (parsedData.weeks || parsedData.defaultWeek || parsedData.settings) {
         populateEmployees();
         populateWeeks();
       }
@@ -270,6 +353,83 @@ function sendMsg(msg: clientMessage) {
   ws.send(JSON.stringify(msg));
 }
 
+function updateSettingsInputs() {
+  consecutiveMarginInput.value = settings.consecutiveMargin.toString();
+  const rangesDiv = document.getElementById(
+    "named-time-ranges"
+  ) as HTMLDivElement;
+  rangesDiv.innerHTML = "";
+  settings.namedTimeRanges.forEach((range, index) => {
+    const rangeDiv = document.createElement("div");
+    rangeDiv.className = "named-time-range";
+    const nameInput = document.createElement("input");
+    nameInput.type = "text";
+    nameInput.value = range.name;
+    const startInput = document.createElement("input");
+    startInput.type = "time";
+    startInput.value = getUTCTime(range.start, true);
+    const endInput = document.createElement("input");
+    endInput.type = "time";
+    endInput.value = getUTCTime(range.end, true);
+    const deleteButton = document.createElement("div");
+    deleteButton.className = "button";
+    deleteButton.innerHTML = "X";
+    const commitRange = () => {
+      if (
+        !nameInput.value ||
+        !startInput.value ||
+        !endInput.value
+      ) {
+        updateSettingsInputs();
+        return;
+      }
+      const namedTimeRanges = [...settings.namedTimeRanges];
+      namedTimeRanges[index] = {
+        name: nameInput.value,
+        start: inputTimeToDate(startInput.value),
+        end: inputTimeToDate(endInput.value),
+      };
+      settings = { ...settings, namedTimeRanges };
+      commitSettings();
+    };
+    nameInput.onchange = commitRange;
+    startInput.onchange = commitRange;
+    endInput.onchange = commitRange;
+    deleteButton.onclick = () => {
+      settings = {
+        ...settings,
+        namedTimeRanges: settings.namedTimeRanges.filter((_, i) => i !== index),
+      };
+      commitSettings();
+    };
+    rangeDiv.appendChild(nameInput);
+    rangeDiv.appendChild(startInput);
+    rangeDiv.appendChild(endInput);
+    rangeDiv.appendChild(deleteButton);
+    rangesDiv.appendChild(rangeDiv);
+  });
+}
+
+function normalizeSettings(newSettings?: Partial<Settings>): Settings {
+  return {
+    ...settings,
+    ...newSettings,
+    namedTimeRanges:
+      newSettings?.namedTimeRanges?.map((range) => ({
+        name: range.name,
+        start: range.start instanceof Date ? range.start : new Date(range.start),
+        end: range.end instanceof Date ? range.end : new Date(range.end),
+      })) ?? settings.namedTimeRanges,
+  };
+}
+
+function commitSettings() {
+  updateSettingsInputs();
+  populateEmployees();
+  populateWeeks();
+  sendMsg({ type: "changeSettings", settings });
+}
+
 function blError(description: string, data?: errorData) {
   console.error(`Foundry-Schedule Error: "${description}"`);
   if (data)
@@ -288,7 +448,7 @@ function dateReviver(key: string, value: any) {
 
 function populateEmployees() {
   const employeesDiv = document.getElementById(
-    "employees-div"
+    "employees-list"
   ) as HTMLDivElement;
   employeesDiv.innerHTML = "";
   employees.forEach((employee, employeeIndex) => {
@@ -405,15 +565,9 @@ function populateEmployees() {
           else totalsObj[shiftType] = length;
         };
         incType(shift.position);
-        if (isGraveyard(shift)) incType("graveyard");
-      });
-      employee.conditions.forEach((condition) => {
-        if (
-          !totalsObj[condition.position] &&
-          (condition.relational === ">" ||
-            (condition.relational === "=" && condition.value > 0))
-        )
-          totalsObj[condition.position] = 0;
+        settings.namedTimeRanges.forEach((range) => {
+          if (shiftOverlapsNamedTimeRange(shift, range)) incType(range.name);
+        });
       });
       const totalsArr = Object.entries(totalsObj);
       totalsArr.sort((a, b) => {
@@ -433,28 +587,6 @@ function populateEmployees() {
         positionDiv.innerHTML = `${
           position === "" ? "Total" : position
         }: ${total}`;
-        employee.conditions.forEach((condition) => {
-          if (condition.position === position) {
-            const relationals = {
-              ">": (a, b) => a > b,
-              "<": (a, b) => a < b,
-              "=": (a, b) => a === b,
-            };
-            const totalShifts = totalsObj[""];
-            const percentage = totalShifts ? (100 * total) / totalShifts : 0;
-            if (
-              !relationals[condition.relational](
-                condition.type === "number" ? total : percentage,
-                condition.value
-              ) &&
-              !(condition.type === "percent" && total === 0)
-            ) {
-              isRed = true;
-              positionDiv.style.color = "#f00";
-              employeeName.style.color = "#f00";
-            }
-          }
-        });
         if (total > 0 || isRed) detailsDiv.appendChild(positionDiv);
       });
       if (hasConsecutiveShifts) {
@@ -509,7 +641,6 @@ function populateEmployees() {
           employee: {
             name: "",
             positions: [],
-            conditions: [],
             timeOff: [],
             unavailable: [],
           },
@@ -526,7 +657,6 @@ function populateEmployees() {
     const newEmployee: Employee = {
       name: "",
       positions: [],
-      conditions: [],
       timeOff: [],
       unavailable: [],
     };
@@ -554,7 +684,7 @@ function populateEmployeePage() {
     employee.desiredHours ? employee.desiredHours.toString() : "";
   resetEmployeeDraftInputs();
   const populateList = (
-    list: "positions" | "conditions" | "unavailable" | "timeOff"
+    list: "positions" | "unavailable" | "timeOff"
   ) => {
     const listDiv = document.getElementById(
       `employee-${list === "timeOff" ? "time-off" : list}-list`
@@ -572,20 +702,6 @@ function populateEmployeePage() {
         case "positions":
           {
             stringDiv.innerHTML = item;
-          }
-          break;
-        case "conditions":
-          {
-            const condition = item as Condition;
-            const relational =
-              condition.relational === "<"
-                ? "Less than"
-                : condition.relational === "="
-                ? "Exactly"
-                : "More than";
-            stringDiv.innerHTML = `${relational} ${condition.value}${
-              condition.type === "percent" ? "%" : ""
-            } ${condition.position} shifts`;
           }
           break;
         case "unavailable":
@@ -659,52 +775,6 @@ function populateEmployeePage() {
               add.style.display = "none";
               populateList("positions");
             }
-          };
-        }
-        break;
-      case "conditions":
-        {
-          const relationalSelect = document.getElementById(
-            "employee-condition-relational"
-          ) as HTMLSelectElement;
-          const valueInput = document.getElementById(
-            "employee-condition-value"
-          ) as HTMLInputElement;
-          const typeSelect = document.getElementById(
-            "employee-condition-value-type"
-          ) as HTMLSelectElement;
-          const positionInput = document.getElementById(
-            "employee-condition-position"
-          ) as HTMLSelectElement;
-          const add = document.getElementById(
-            "add-employee-condition"
-          ) as HTMLDivElement;
-          positionInput.innerHTML = "";
-          const positionOptions = ["Any", "am", "pm", ...positions];
-          positionOptions.forEach((position) => {
-            const option = document.createElement("option");
-            option.innerHTML = position;
-            option.value = position === "Any" ? "" : position;
-            positionInput.appendChild(option);
-          });
-          const processInput = () => {
-            if (valueInput.value || +valueInput === 0) {
-              add.style.display = "";
-            } else add.style.display = "none";
-          };
-          relationalSelect.onchange = processInput;
-          valueInput.onchange = processInput;
-          typeSelect.onchange = processInput;
-          positionInput.onchange = processInput;
-          add.onclick = () => {
-            const relational = relationalSelect.value as ">" | "<" | "=";
-            const value = +valueInput.value;
-            const type = typeSelect.value as "number" | "percent";
-            const position = positionInput.value;
-            employee.conditions.push({ relational, value, type, position });
-            valueInput.value = "";
-            add.style.display = "none";
-            populateList("conditions");
           };
         }
         break;
@@ -814,7 +884,6 @@ function populateEmployeePage() {
     }
   };
   populateList("positions");
-  populateList("conditions");
   populateList("unavailable");
   populateList("timeOff");
 }
@@ -823,10 +892,6 @@ function resetEmployeeDraftInputs() {
   (document.getElementById("new-employee-position") as HTMLInputElement).value =
     "";
   (document.getElementById("add-employee-position") as HTMLDivElement).style
-    .display = "none";
-  (document.getElementById("employee-condition-value") as HTMLInputElement)
-    .value = "";
-  (document.getElementById("add-employee-condition") as HTMLDivElement).style
     .display = "none";
   (document.getElementById("unavailable-reason") as HTMLInputElement).value =
     "";
@@ -1277,7 +1342,7 @@ function isWithinHours(
     Math.abs(start1.getTime() - endTime2),
     Math.abs(start2.getTime() - endTime1)
   );
-  const msThreshold = CONSECUTIVE_MARGIN * 60 * 60 * 1000;
+  const msThreshold = settings.consecutiveMargin * 60 * 60 * 1000;
   if (msDiff <= msThreshold) {
     //console.log("shifts within margin: true");
   } else {
@@ -1363,10 +1428,61 @@ function weeklyTimeRangesOverlap(
   });
 }
 
-function isGraveyard(shift: Shift) {
-  const startTime =
-    shift.start.getUTCHours() * 60 + shift.start.getUTCMinutes();
-  return startTime >= 1380 || startTime <= 180;
+function inputTimeToDate(value: string) {
+  const [hours, minutes] = value.split(":").map((part) => parseInt(part, 10));
+  return timeOfDay(hours, minutes);
+}
+
+function timeOfDay(hours: number, minutes: number) {
+  const time = new Date(0);
+  time.setUTCHours(hours, minutes, 0, 0);
+  return time;
+}
+
+function shiftOverlapsNamedTimeRange(shift: Shift, range: NamedTimeRange) {
+  if (sameTimeOfDay(range.start, range.end)) {
+    return shiftIncludesTimeOfDay(shift, range.start);
+  }
+  const shiftRange = timeOfDayRange(shift.start, shift.end);
+  const namedRange = timeOfDayRange(range.start, range.end);
+  if (!shiftRange || !namedRange) return false;
+  return timeOfDayRangesOverlap(
+    shiftRange,
+    namedRange
+  );
+}
+
+function sameTimeOfDay(time1: Date, time2: Date) {
+  return timeOfDayMinutes(time1) === timeOfDayMinutes(time2);
+}
+
+function shiftIncludesTimeOfDay(shift: Shift, time: Date) {
+  const shiftRange = timeOfDayRange(shift.start, shift.end);
+  if (!shiftRange) return false;
+  const point = timeOfDayMinutes(time);
+  return [-MINUTES_PER_DAY, 0, MINUTES_PER_DAY].some((offset) => {
+    const adjustedPoint = point + offset;
+    return adjustedPoint >= shiftRange.start && adjustedPoint <= shiftRange.end;
+  });
+}
+
+function timeOfDayRange(start: Date, end: Date) {
+  const rangeStart = timeOfDayMinutes(start);
+  let rangeEnd = timeOfDayMinutes(end);
+  if (rangeEnd === rangeStart) return null;
+  if (rangeEnd < rangeStart) rangeEnd += MINUTES_PER_DAY;
+  return { start: rangeStart, end: rangeEnd };
+}
+
+function timeOfDayRangesOverlap(
+  range1: { start: number; end: number },
+  range2: { start: number; end: number }
+) {
+  return [-MINUTES_PER_DAY, 0, MINUTES_PER_DAY].some((offset) => {
+    const start2 = range2.start + offset;
+    const end2 = range2.end + offset;
+    return range1.start < end2 && start2 < range1.end;
+  });
 }
 
 function deepCopy<T>(obj: T): T {

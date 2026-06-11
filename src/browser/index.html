@@ -121,6 +121,48 @@
 				background-color: var(--employees-bgcolor);
 				color: var(--employees-color);
 				flex-grow: 1;
+				display: flex;
+				flex-direction: column;
+				overflow-y: auto;
+			}
+			#employees-list {
+				flex: 1 0 auto;
+			}
+			#employee-settings {
+				position: sticky;
+				bottom: 0;
+				background-color: var(--employees-bgcolor);
+				border-top: 1px solid #777;
+				padding: 0.5em;
+			}
+			#employee-settings label {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 0.5em;
+			}
+			#consecutive-margin {
+				width: 6em;
+			}
+			#named-time-ranges {
+				margin-top: 0.5em;
+			}
+			.named-time-range {
+				display: grid;
+				grid-template-columns: 1fr auto auto auto;
+				gap: 0.25em;
+				align-items: center;
+				margin: 0.25em 0;
+			}
+			.named-time-range input[type='text'] {
+				min-width: 0;
+			}
+			.named-time-range input[type='time'] {
+				width: 6.5em;
+			}
+			.named-time-range .button {
+				margin: 0;
+				padding: 0.25em 0.5em;
 			}
 			.employee-div {
 				cursor: pointer;
@@ -279,7 +321,29 @@
 		<div id="main">
 			<div id="primary" class="selected">
 				<div id="week-div"></div>
-				<div id="employees-div"></div>
+				<div id="employees-div">
+					<div id="employees-list"></div>
+					<div id="employee-settings">
+						<label for="consecutive-margin">
+							Consecutive margin
+							<input
+								id="consecutive-margin"
+								type="number"
+								min="0"
+								step="0.25"
+							/>
+						</label>
+						<div id="named-time-ranges"></div>
+						<div class="named-time-range">
+							<input id="new-time-range-name" placeholder="range name" />
+							<input id="new-time-range-start" type="time" />
+							<input id="new-time-range-end" type="time" />
+							<div class="button" id="add-time-range" style="display: none">
+								Add
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 			<div
 				style="display: flex; justify-content: center; align-items: center"
@@ -328,40 +392,6 @@
 								<div
 									class="button"
 									id="add-employee-position"
-									style="display: none"
-								>
-									Add
-								</div>
-							</div>
-						</div>
-						<div id="employee-conditions">
-							<b>Conditions</b>
-							<div id="employee-conditions-list">List</div>
-							<div class="add-to-list-stuff">
-								<select id="employee-condition-relational">
-									<option value=">">More than</option>
-									<option value="=">Exactly</option>
-									<option value="&lt;">Less than</option>
-								</select>
-								<input
-									type="number"
-									id="employee-condition-value"
-									min="0"
-									max="100"
-								/>
-								<select id="employee-condition-value-type">
-									<option value="number">total</option>
-									<option value="percent">%</option>
-								</select>
-								<select id="employee-condition-position">
-									<option value="">Any</option>
-									<option value="">am</option>
-									<option value="">pm</option>
-								</select>
-								<span>shifts</span>
-								<div
-									class="button"
-									id="add-employee-condition"
 									style="display: none"
 								>
 									Add
