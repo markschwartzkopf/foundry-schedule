@@ -583,11 +583,10 @@ function populateEmployees() {
       });
       totalsArr.forEach(([position, total]) => {
         const positionDiv = document.createElement("div");
-        let isRed = false;
         positionDiv.innerHTML = `${
           position === "" ? "Total" : position
         }: ${total}`;
-        if (total > 0 || isRed) detailsDiv.appendChild(positionDiv);
+        if (total > 0) detailsDiv.appendChild(positionDiv);
       });
       if (hasConsecutiveShifts) {
         const consecutiveDiv = document.createElement("div");
