@@ -301,6 +301,18 @@ ws.onmessage = (msg) => {
         settings = normalizeSettings(parsedData.settings);
         updateSettingsInputs();
       }
+      if (parsedData.positions) {
+        positions = parsedData.positions;
+        const positionsList = document.getElementById(
+          "positions-list"
+        ) as HTMLDataListElement;
+        positionsList.innerHTML = "";
+        positions.forEach((position) => {
+          const option = document.createElement("option");
+          option.value = position;
+          positionsList.appendChild(option);
+        });
+      }
       if (parsedData.employees) {
         employees = parsedData.employees;
         const employeeList = document.getElementById(
@@ -325,21 +337,14 @@ ws.onmessage = (msg) => {
       if (parsedData.defaultWeek) {
         defaultWeek = parsedData.defaultWeek;
       }
-      if (parsedData.weeks || parsedData.defaultWeek || parsedData.settings) {
+      if (
+        parsedData.weeks ||
+        parsedData.defaultWeek ||
+        parsedData.settings ||
+        parsedData.positions
+      ) {
         populateEmployees();
         populateWeeks();
-      }
-      if (parsedData.positions) {
-        positions = parsedData.positions;
-        const positionsList = document.getElementById(
-          "positions-list"
-        ) as HTMLDataListElement;
-        positionsList.innerHTML = "";
-        positions.forEach((position) => {
-          const option = document.createElement("option");
-          option.value = position;
-          positionsList.appendChild(option);
-        });
       }
     } catch (error) {
       blError("Error parsing JSON data", { data: error });
