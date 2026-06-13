@@ -571,14 +571,15 @@ function populateEmployees() {
       });
       const totalsArr = Object.entries(totalsObj);
       totalsArr.sort((a, b) => {
-        let rtn = 0;
-        if (a[0] === "am") rtn = 1;
-        if (b[0] === "am") rtn = -1;
-        if (b[0] === "pm") rtn = -1;
-        if (a[0] === "pm") rtn = 1;
-        if (a[0] === "") rtn = -1;
-        if (b[0] === "") rtn = 1;
-        if (rtn) return rtn;
+        const categoryOrder = (category: string) => {
+          if (category === "") return 0;
+          if (positions.includes(category)) return 1;
+          if (settings.namedTimeRanges.some((range) => range.name === category))
+            return 2;
+          return 3;
+        };
+        const orderDiff = categoryOrder(a[0]) - categoryOrder(b[0]);
+        if (orderDiff) return orderDiff;
         return a[0].localeCompare(b[0]);
       });
       totalsArr.forEach(([position, total]) => {
